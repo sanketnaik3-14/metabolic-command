@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ComposedChart, Area } from 'recharts';
-import { Plus, Trash2, ChevronDown, ChevronUp, Check, Scale, Ruler, Utensils, Dumbbell, Activity, Calendar, Info, Filter, Save, History, Repeat, AlertTriangle, Battery, HeartPulse, CheckCircle2, XCircle } from 'lucide-react';
+import { Plus, Trash2, ChevronDown, ChevronUp, Check, Scale, Ruler, Utensils, Dumbbell, Activity, Calendar, Info, Filter, Save, History, Repeat, AlertTriangle, Battery, HeartPulse, CheckCircle2, XCircle, ToggleLeft, ToggleRight } from 'lucide-react';
 
 // --- Material Design 3 Color Tokens ---
 const colors = {
@@ -169,7 +169,14 @@ const WORKOUTS = {
            { id: 'ex12', name: 'Calf Raises', sets: 3, reps: '15-20' }
         ]
       },
-      { id: 'ex13_mach', name: 'Dumbbell Step-Ups', sets: 3, reps: '10-12/leg', type: 'standard', note: 'Glute Finisher. Use box height at knee level.' },
+      { 
+        id: 'ex13_mach', 
+        name: 'Reverse Lunges', 
+        sets: 3, 
+        reps: '10-12/leg', 
+        type: 'standard', 
+        note: 'Lean torso forward slightly to bias Glutes. Drive thru front heel.' 
+      },
       { id: 'cardio3', name: 'Incline Walk (Zone 2)', sets: 1, reps: '25-30 mins', type: 'cardio' }
     ]
   },
