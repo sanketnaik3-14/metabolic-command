@@ -122,11 +122,11 @@ const WORKOUTS = {
       { id: 'ex5', name: 'Lat Pulldowns', sets: 3, reps: '10-12', type: 'standard' },
       { 
         id: 'ex6', 
-        name: 'Chest-Supported Rows', 
+        name: 'Seated Machine Rows', 
         sets: 3, 
         reps: '10-12', 
         type: 'standard',
-        note: 'Hold contraction for 1s. Protect lower back.'
+        note: 'Chest against pad. Squeeze scapula.'
       },
       { 
         id: 'superset1', 
@@ -145,20 +145,19 @@ const WORKOUTS = {
     exercises: [
       { 
         id: 'ex9_comp', 
-        name: 'Goblet Squat / Hack Squat', 
+        name: 'Squat Variation (Goblet/Hack)', 
         sets: 3, 
         reps: '8-12', 
         type: 'standard',
-        note: 'Maintain upright torso. Stop if lower back pumps.'
+        note: 'Stop if lower back pumps.'
       },
       { id: 'ex10', name: 'Seated Leg Extensions', sets: 3, reps: '12-15', type: 'standard' },
-      { id: 'ex13_comp', name: 'Walking Lunges / Step-Ups', sets: 3, reps: '10-12/leg', type: 'standard', note: 'Critical for Glute activation.' },
       { 
         id: 'superset2_comp', 
         name: 'Superset: RDLs + Calves', 
         type: 'superset',
         exercises: [
-           { id: 'ex11_comp', name: 'Dumbbell RDL', sets: 3, reps: '10-12' },
+           { id: 'ex11_comp', name: 'Dumbbell/Trap Bar RDL', sets: 3, reps: '10-12' },
            { id: 'ex12', name: 'Calf Raises', sets: 3, reps: '15-20' }
         ]
       },
@@ -166,18 +165,25 @@ const WORKOUTS = {
     ]
   },
   legs_machine: {
-    title: 'Leg Day (Machine/Safety Focus)',
+    title: 'Leg Day (Machine Focus)',
     exercises: [
       { 
-        id: 'ex9_mach', 
-        name: 'Leg Press', 
+        id: 'ex9_mach_high', 
+        name: 'Leg Press (Feet HIGH)', 
         sets: 3, 
         reps: '12-15', 
         type: 'standard',
-        note: 'Feet MIDDLE. Use Step-Ups for Glutes.'
+        note: 'Focus: Glutes & Hamstrings. Drive through heels.'
+      },
+      { 
+        id: 'ex9_mach_low', 
+        name: 'Leg Press (Feet LOW)', 
+        sets: 3, 
+        reps: '12-15', 
+        type: 'standard',
+        note: 'Focus: Quads. Do not lock knees.'
       },
       { id: 'ex10', name: 'Seated Leg Extensions', sets: 3, reps: '12-15', type: 'standard' },
-      { id: 'ex13_mach', name: 'Dumbbell Step-Ups', sets: 3, reps: '10-12/leg', type: 'standard', note: 'Drive through the heel. Glute focus.' },
       { 
         id: 'superset2_mach', 
         name: 'Superset: Hamstring Curls + Calves', 
