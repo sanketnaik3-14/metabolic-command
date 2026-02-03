@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ComposedChart, Area } from 'recharts';
-import { Plus, Trash2, ChevronDown, ChevronUp, Check, Scale, Ruler, Utensils, Dumbbell, Activity, Calendar, Info, Filter, Save, History, Repeat, AlertTriangle, Battery, HeartPulse, CheckCircle2, XCircle, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Plus, Trash2, ChevronDown, ChevronUp, Check, Scale, Ruler, Utensils, Dumbbell, Activity, Calendar, Info, Filter, Save, History, Repeat, AlertTriangle, Battery, HeartPulse, CheckCircle2, XCircle } from 'lucide-react';
 
 // --- Material Design 3 Color Tokens ---
 const colors = {
@@ -82,7 +82,7 @@ const RECIPES = [
   },
 ];
 
-// --- DATA: Workout Routine (Clinical Hypertrophy Protocol) ---
+// --- DATA: Workout Routine (Clinical Hypertrophy Protocol - CONSOLIDATED) ---
 const WORKOUTS = {
   push: {
     title: 'Push Day (Chest/Shoulders/Tri)',
@@ -141,7 +141,7 @@ const WORKOUTS = {
     ]
   },
   legs: {
-    title: 'Leg Day (Machine/Safety Focus)',
+    title: 'Leg Day (Machine & Safety Focus)',
     exercises: [
       { 
         id: 'ex9_mach_low', 
@@ -165,17 +165,17 @@ const WORKOUTS = {
         name: 'Superset: Hamstring Curls + Calves', 
         type: 'superset',
         exercises: [
-           { id: 'ex11_mach', name: 'Lying Leg Curls', sets: 4, reps: '12-15' }, // 4 Sets for Volume
+           { id: 'ex11_mach', name: 'Lying Leg Curls', sets: 4, reps: '12-15' }, // 4 Sets
            { id: 'ex12', name: 'Calf Raises', sets: 3, reps: '15-20' }
         ]
       },
       { 
         id: 'ex13_mach', 
-        name: 'Reverse Lunges', 
+        name: 'Bodyweight Step-Ups OR Rev Lunges', 
         sets: 3, 
         reps: '10-12/leg', 
         type: 'standard', 
-        note: 'Lean torso forward slightly to bias Glutes. Drive thru front heel.' 
+        note: 'NO WEIGHT yet. Focus on balance and glute contraction.' 
       },
       { id: 'cardio3', name: 'Incline Walk (Zone 2)', sets: 1, reps: '25-30 mins', type: 'cardio' }
     ]
