@@ -93,7 +93,7 @@ const WORKOUTS = {
         sets: 4, 
         reps: '8-12', 
         type: 'standard',
-        note: 'Primary Driver. Full ROM. Stop 2 RIR.' 
+        note: 'Double Progression: Hit 12 reps on ALL sets before increasing weight.' 
       },
       { 
         id: 'ex1b', 
@@ -152,6 +152,7 @@ const WORKOUTS = {
         note: 'Maintain upright torso. Stop if lower back pumps.'
       },
       { id: 'ex10', name: 'Seated Leg Extensions', sets: 3, reps: '12-15', type: 'standard' },
+      { id: 'ex13_comp', name: 'Walking Lunges / Step-Ups', sets: 3, reps: '10-12/leg', type: 'standard', note: 'Critical for Glute activation.' },
       { 
         id: 'superset2_comp', 
         name: 'Superset: RDLs + Calves', 
@@ -173,9 +174,10 @@ const WORKOUTS = {
         sets: 3, 
         reps: '12-15', 
         type: 'standard',
-        note: 'Feet HIGH for Glutes. Feet LOW for Quads.'
+        note: 'Feet MIDDLE. Use Step-Ups for Glutes.'
       },
       { id: 'ex10', name: 'Seated Leg Extensions', sets: 3, reps: '12-15', type: 'standard' },
+      { id: 'ex13_mach', name: 'Dumbbell Step-Ups', sets: 3, reps: '10-12/leg', type: 'standard', note: 'Drive through the heel. Glute focus.' },
       { 
         id: 'superset2_mach', 
         name: 'Superset: Hamstring Curls + Calves', 
