@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ComposedChart, Area } from 'recharts';
-import { Plus, Trash2, ChevronDown, ChevronUp, Check, Scale, Ruler, Utensils, Dumbbell, Activity, Calendar, Info, Filter, Save, History, Repeat } from 'lucide-react';
+import { Plus, Trash2, ChevronDown, ChevronUp, Check, Scale, Ruler, Utensils, Dumbbell, Activity, Calendar, Info, Filter, Save, History, Repeat, AlertTriangle, Battery, HeartPulse, CheckCircle2, XCircle } from 'lucide-react';
 
 // --- Material Design 3 Color Tokens ---
 const colors = {
@@ -82,23 +82,52 @@ const RECIPES = [
   },
 ];
 
-// --- DATA: Workout Routine (Rolling Split) ---
+// --- DATA: Workout Routine (Clinical Hypertrophy Protocol) ---
 const WORKOUTS = {
   push: {
     title: 'Push Day (Chest/Shoulders/Tri)',
     exercises: [
-      { id: 'ex1', name: 'Dumbbell Chest Press', sets: 3, reps: '10-12', type: 'standard' },
-      { id: 'ex2', name: 'Overhead Press', sets: 3, reps: '10-12', type: 'standard' },
+      { 
+        id: 'ex1', 
+        name: 'Dumbbell Chest Press', 
+        sets: 4, 
+        reps: '8-12', 
+        type: 'standard',
+        note: 'Double Progression: Hit 12 reps on ALL sets before increasing weight.' 
+      },
+      { 
+        id: 'ex1b', 
+        name: 'Incline Dumbbell/Machine Flys', 
+        sets: 3, 
+        reps: '12-15', 
+        type: 'standard',
+        note: 'Focus on stretch. RPE 8.' 
+      },
+      { id: 'ex2', name: 'Overhead Press', sets: 3, reps: '8-12', type: 'standard' },
       { id: 'ex3', name: 'Tricep Pushdowns', sets: 3, reps: '12-15', type: 'standard' },
       { id: 'ex4', name: 'Plank', sets: 3, reps: '45s', type: 'standard' },
-      { id: 'cardio1', name: 'Incline Walk (Zone 2)', sets: 1, reps: '20-30 mins', type: 'cardio' }
+      { 
+        id: 'cardio1', 
+        name: 'Incline Walk (Zone 2)', 
+        sets: 1, 
+        reps: '25-30 mins', 
+        type: 'cardio',
+        note: 'MEDICAL PRIORITY: Clears Lipotoxicity.'
+      }
     ]
   },
   pull: {
     title: 'Pull Day (Back/Biceps)',
     exercises: [
       { id: 'ex5', name: 'Lat Pulldowns', sets: 3, reps: '10-12', type: 'standard' },
-      { id: 'ex6', name: 'Dumbbell Rows', sets: 3, reps: '10-12', type: 'standard' },
+      { 
+        id: 'ex6', 
+        name: 'Chest-Supported Rows', 
+        sets: 3, 
+        reps: '10-12', 
+        type: 'standard',
+        note: 'Hold contraction for 1s. Protect lower back.'
+      },
       { 
         id: 'superset1', 
         name: 'Superset: Face Pulls + Bicep Curls', 
@@ -108,14 +137,21 @@ const WORKOUTS = {
            { id: 'ex8', name: 'Bicep Curls', sets: 3, reps: '12' }
         ]
       },
-      { id: 'cardio2', name: 'Incline Walk (Zone 2)', sets: 1, reps: '20-30 mins', type: 'cardio' }
+      { id: 'cardio2', name: 'Incline Walk (Zone 2)', sets: 1, reps: '25-30 mins', type: 'cardio' }
     ]
   },
   legs: {
     title: 'Leg Day (Lower Body)',
     exercises: [
-      { id: 'ex9', name: 'Leg Press', sets: 3, reps: '12-15', type: 'standard' },
-      { id: 'ex10', name: 'Seated Leg Raises (Extensions)', sets: 3, reps: '12-15', type: 'standard' },
+      { 
+        id: 'ex9', 
+        name: 'Leg Press', 
+        sets: 3, 
+        reps: '12-15', 
+        type: 'standard',
+        note: 'Feet HIGH on platform. Increase weight only if 15 reps is EASY.'
+      },
+      { id: 'ex10', name: 'Seated Leg Extensions', sets: 3, reps: '12-15', type: 'standard' },
       { 
         id: 'superset2', 
         name: 'Superset: Hamstrings + Calves', 
@@ -125,13 +161,20 @@ const WORKOUTS = {
            { id: 'ex12', name: 'Calf Raises', sets: 3, reps: '15-20' }
         ]
       },
-      { id: 'cardio3', name: 'Incline Walk (Zone 2)', sets: 1, reps: '20-30 mins', type: 'cardio' }
+      { id: 'cardio3', name: 'Incline Walk (Zone 2)', sets: 1, reps: '25-30 mins', type: 'cardio' }
     ]
   },
   rest: {
     title: 'Active Recovery',
     exercises: [
-      { id: 'cardio4', name: 'Zone 1-2 Cardio (Walk/Cycle)', sets: 1, reps: '45 mins', type: 'cardio' },
+      { 
+        id: 'cardio4', 
+        name: 'Zone 1-2 Cardio (Walk/Cycle)', 
+        sets: 1, 
+        reps: '45 mins', 
+        type: 'cardio',
+        note: 'Required for TSH/Lipid management.'
+      },
       { id: 'stretch', name: 'Full Body Stretch', sets: 1, reps: '15 mins', type: 'cardio' }
     ]
   }
@@ -147,7 +190,6 @@ const Card = ({ children, className = "" }) => (
 
 const Button = ({ children, onClick, variant = 'primary', className = "" }) => {
   const baseStyle = "px-6 py-3 rounded-full font-medium transition-all duration-200 flex items-center justify-center gap-2";
-  // Using inline styles for dynamic colors
   const styleMap = {
     primary: { backgroundColor: colors.primary, color: 'white' },
     secondary: { backgroundColor: colors.surfaceVariant, color: colors.onSurface },
@@ -227,6 +269,12 @@ export default function App() {
 
   const [workoutLogs, setWorkoutLogs] = useState({});
   const [currentDay, setCurrentDay] = useState(1); // 1-4 Rolling Cycle
+  
+  // Readiness State
+  const [baselineHR, setBaselineHR] = useState(65); // Default Baseline
+  const [todayHR, setTodayHR] = useState('');
+  const [jointPain, setJointPain] = useState(false);
+  const [readinessStatus, setReadinessStatus] = useState(null); // 'green', 'yellow', 'red'
 
   // Load Data
   useEffect(() => {
@@ -238,7 +286,23 @@ export default function App() {
 
     const savedProgress = localStorage.getItem('progressLogs');
     if (savedProgress) setProgressLogs(JSON.parse(savedProgress));
+
+    const savedBaseline = localStorage.getItem('baselineHR');
+    if (savedBaseline) setBaselineHR(parseInt(savedBaseline));
   }, []);
+
+  const calculateReadiness = () => {
+      if (!todayHR) return;
+      const hrDiff = parseInt(todayHR) - baselineHR;
+      
+      if (hrDiff > 10 || jointPain) {
+          setReadinessStatus('red');
+      } else if (hrDiff > 5) {
+          setReadinessStatus('yellow');
+      } else {
+          setReadinessStatus('green');
+      }
+  };
 
   // Save Workout Set
   const saveSetLog = (exerciseId, setIndex, field, value) => {
@@ -296,6 +360,9 @@ export default function App() {
     const nextDay = currentDay === 4 ? 1 : currentDay + 1;
     setCurrentDay(nextDay);
     localStorage.setItem('currentDay', nextDay);
+    setReadinessStatus(null);
+    setTodayHR('');
+    setJointPain(false);
   };
 
   const getWorkoutForToday = () => {
@@ -329,7 +396,7 @@ export default function App() {
           {[
             { id: 'thyroid', label: 'Thyroid Meds (07:00 AM)', desc: 'Empty stomach, 60m wait' },
             { id: 'water', label: '3 Liters Water', desc: 'Sip throughout the day' },
-            { id: 'walk', label: 'Incline Walk', desc: '20-30 mins Zone 2' },
+            { id: 'walk', label: 'Incline Walk (25m)', desc: 'Immediate Post-Workout' },
             { id: 'meds', label: 'Night Meds (Rosave F)', desc: 'With Dinner' }
           ].map(item => (
             <label key={item.id} className="flex items-start gap-3 p-3 bg-white rounded-xl shadow-sm cursor-pointer hover:bg-stone-50 transition-colors">
@@ -414,10 +481,18 @@ export default function App() {
       <Card key={ex.id} className="relative overflow-hidden group transition-all hover:shadow-md mb-4">
         <div className="flex justify-between items-start mb-4">
           <div>
-            <h3 className="text-lg font-bold text-[#1A1C19]">{ex.name}</h3>
+            <h3 className="text-lg font-bold text-[#1A1C19] flex items-center gap-2">
+                {ex.name}
+            </h3>
             <div className="text-sm font-medium text-[#4F6F52] bg-[#D2E3D2] inline-block px-2 py-0.5 rounded-md mt-1">
               Target: {ex.sets} sets × {ex.reps}
             </div>
+            {ex.note && (
+                <div className="flex items-start gap-1 mt-2 p-2 bg-stone-50 rounded-lg text-xs text-[#5D4037]">
+                    <AlertTriangle size={12} className="mt-0.5 shrink-0" />
+                    <span>{ex.note}</span>
+                </div>
+            )}
           </div>
           {lastSession && (
             <div className="text-right text-xs text-[#43474E] bg-stone-100 p-2 rounded-lg">
@@ -446,7 +521,7 @@ export default function App() {
     
     return (
       <div className="space-y-6 pb-24 animate-fade-in">
-        <header className="flex justify-between items-center">
+        <header className="flex justify-between items-center mb-6">
           <div>
             <h2 className="text-3xl font-bold text-[#1A1C19]">Today's Training</h2>
             <p className="text-[#43474E]">{todayWorkout.title}</p>
@@ -455,6 +530,66 @@ export default function App() {
              Next Day <ChevronDown size={16} />
           </Button>
         </header>
+
+        {/* Readiness Check Calculator */}
+        <div className="mb-6 p-4 bg-white rounded-3xl border border-stone-200">
+            <h3 className="text-sm font-bold text-[#43474E] mb-3 flex items-center gap-2">
+                <HeartPulse size={16}/> Readiness Calculator
+            </h3>
+            
+            {!readinessStatus ? (
+                <div className="space-y-3">
+                    <div className="flex items-center gap-4">
+                        <label className="text-xs font-bold text-[#43474E]">Morning HR:</label>
+                        <input 
+                            type="number" 
+                            placeholder="bpm" 
+                            value={todayHR}
+                            onChange={(e) => setTodayHR(e.target.value)}
+                            className="w-24 p-2 bg-stone-50 rounded-lg text-sm border-none focus:ring-1 focus:ring-[#4F6F52]"
+                        />
+                         <div className="text-xs text-[#73777F]">(Baseline: {baselineHR})</div>
+                    </div>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                        <input 
+                            type="checkbox" 
+                            checked={jointPain}
+                            onChange={(e) => setJointPain(e.target.checked)}
+                            className="w-4 h-4 rounded text-[#4F6F52] focus:ring-[#4F6F52]"
+                        />
+                        <span className="text-xs text-[#43474E] font-medium">Acute Joint Pain / Severe Soreness?</span>
+                    </label>
+                    <Button onClick={calculateReadiness} className="w-full py-2 text-xs">
+                        Check Status
+                    </Button>
+                </div>
+            ) : (
+                <div className={`p-4 rounded-xl border ${
+                    readinessStatus === 'green' ? 'bg-[#D2E3D2] border-[#4F6F52] text-[#0F2011]' :
+                    readinessStatus === 'yellow' ? 'bg-amber-50 border-amber-300 text-amber-900' :
+                    'bg-red-50 border-red-300 text-red-900'
+                }`}>
+                    <div className="flex items-center gap-2 font-bold mb-1">
+                        {readinessStatus === 'green' && <CheckCircle2 size={20} />}
+                        {readinessStatus === 'yellow' && <AlertTriangle size={20} />}
+                        {readinessStatus === 'red' && <XCircle size={20} />}
+                        <span>
+                            {readinessStatus === 'green' ? 'System Ready' : 
+                             readinessStatus === 'yellow' ? 'Caution Needed' : 
+                             'Recovery Required'}
+                        </span>
+                    </div>
+                    <p className="text-xs opacity-90">
+                        {readinessStatus === 'green' ? 'Heart rate is stable. Proceed with planned Double Progression.' : 
+                         readinessStatus === 'yellow' ? 'Elevated HR detected. Reduce weights by 20% today. No failure sets.' : 
+                         'High stress detected. SKIP GYM today. Perform Zone 1 Cardio only.'}
+                    </p>
+                    <button onClick={() => setReadinessStatus(null)} className="mt-2 text-[10px] underline opacity-70">
+                        Reset Check
+                    </button>
+                </div>
+            )}
+        </div>
 
         <div className="space-y-4">
           {todayWorkout.exercises.map((item) => {
