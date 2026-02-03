@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ComposedChart, Area } from 'recharts';
-import { Plus, Trash2, ChevronDown, ChevronUp, Check, Scale, Ruler, Utensils, Dumbbell, Activity, Calendar, Info, Filter, Save, History, Repeat, AlertTriangle, Battery, HeartPulse, CheckCircle2, XCircle, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Plus, Trash2, ChevronDown, ChevronUp, Check, Scale, Ruler, Utensils, Dumbbell, Activity, Calendar, Info, Filter, Save, History, Repeat, AlertTriangle, Battery, HeartPulse, CheckCircle2, XCircle } from 'lucide-react';
 
 // --- Material Design 3 Color Tokens ---
 const colors = {
@@ -126,7 +126,7 @@ const WORKOUTS = {
         sets: 3, 
         reps: '10-12', 
         type: 'standard',
-        note: 'Chest against pad. Squeeze scapula.'
+        note: 'Chest against pad. Squeeze scapula. Protect lower back.'
       },
       { 
         id: 'superset1', 
@@ -140,48 +140,24 @@ const WORKOUTS = {
       { id: 'cardio2', name: 'Incline Walk (Zone 2)', sets: 1, reps: '25-30 mins', type: 'cardio' }
     ]
   },
-  legs_compound: {
-    title: 'Leg Day (Compound Focus)',
+  legs: {
+    title: 'Leg Day (Machine/Safety Focus)',
     exercises: [
-      { 
-        id: 'ex9_comp', 
-        name: 'Squat Variation (Goblet/Hack)', 
-        sets: 3, 
-        reps: '8-12', 
-        type: 'standard',
-        note: 'Stop if lower back pumps.'
-      },
-      { id: 'ex10', name: 'Seated Leg Extensions', sets: 3, reps: '12-15', type: 'standard' },
-      { 
-        id: 'superset2_comp', 
-        name: 'Superset: RDLs + Calves', 
-        type: 'superset',
-        exercises: [
-           { id: 'ex11_comp', name: 'Dumbbell/Trap Bar RDL', sets: 3, reps: '10-12' },
-           { id: 'ex12', name: 'Calf Raises', sets: 3, reps: '15-20' }
-        ]
-      },
-      { id: 'cardio3', name: 'Incline Walk (Zone 2)', sets: 1, reps: '25-30 mins', type: 'cardio' }
-    ]
-  },
-  legs_machine: {
-    title: 'Leg Day (Machine Focus)',
-    exercises: [
-      { 
-        id: 'ex9_mach_high', 
-        name: 'Leg Press (Feet HIGH)', 
-        sets: 3, 
-        reps: '12-15', 
-        type: 'standard',
-        note: 'Focus: Glutes & Hamstrings. Drive through heels.'
-      },
       { 
         id: 'ex9_mach_low', 
         name: 'Leg Press (Feet LOW)', 
         sets: 3, 
         reps: '12-15', 
         type: 'standard',
-        note: 'Focus: Quads. Do not lock knees.'
+        note: 'Target: Quads. Keep knees aligned with toes.'
+      },
+      { 
+        id: 'ex9_mach_high', 
+        name: 'Leg Press (Feet HIGH)', 
+        sets: 3, 
+        reps: '12-15', 
+        type: 'standard',
+        note: 'Target: Glutes/Hams. Drive through heels.'
       },
       { id: 'ex10', name: 'Seated Leg Extensions', sets: 3, reps: '12-15', type: 'standard' },
       { 
@@ -189,10 +165,11 @@ const WORKOUTS = {
         name: 'Superset: Hamstring Curls + Calves', 
         type: 'superset',
         exercises: [
-           { id: 'ex11_mach', name: 'Lying Leg Curls', sets: 3, reps: '12-15' },
+           { id: 'ex11_mach', name: 'Lying Leg Curls', sets: 4, reps: '12-15' }, // 4 Sets for Volume
            { id: 'ex12', name: 'Calf Raises', sets: 3, reps: '15-20' }
         ]
       },
+      { id: 'ex13_mach', name: 'Dumbbell Step-Ups', sets: 3, reps: '10-12/leg', type: 'standard', note: 'Glute Finisher. Use box height at knee level.' },
       { id: 'cardio3', name: 'Incline Walk (Zone 2)', sets: 1, reps: '25-30 mins', type: 'cardio' }
     ]
   },
@@ -301,7 +278,6 @@ export default function App() {
 
   const [workoutLogs, setWorkoutLogs] = useState({});
   const [currentDay, setCurrentDay] = useState(1); // 1-4 Rolling Cycle
-  const [legMode, setLegMode] = useState('compound'); // 'compound' or 'machine'
   
   // Readiness State
   const [baselineHR, setBaselineHR] = useState(65); // Default Baseline
@@ -322,9 +298,6 @@ export default function App() {
 
     const savedBaseline = localStorage.getItem('baselineHR');
     if (savedBaseline) setBaselineHR(parseInt(savedBaseline));
-    
-    const savedLegMode = localStorage.getItem('legMode');
-    if (savedLegMode) setLegMode(savedLegMode);
   }, []);
 
   const calculateReadiness = () => {
@@ -339,12 +312,6 @@ export default function App() {
           setReadinessStatus('green');
       }
   };
-
-  const toggleLegMode = () => {
-      const newMode = legMode === 'compound' ? 'machine' : 'compound';
-      setLegMode(newMode);
-      localStorage.setItem('legMode', newMode);
-  }
 
   // Save Workout Set
   const saveSetLog = (exerciseId, setIndex, field, value) => {
@@ -410,9 +377,7 @@ export default function App() {
   const getWorkoutForToday = () => {
     if (currentDay === 1) return WORKOUTS.push;
     if (currentDay === 2) return WORKOUTS.pull;
-    if (currentDay === 3) {
-        return legMode === 'compound' ? WORKOUTS.legs_compound : WORKOUTS.legs_machine;
-    }
+    if (currentDay === 3) return WORKOUTS.legs;
     return WORKOUTS.rest;
   };
 
@@ -634,19 +599,6 @@ export default function App() {
                 </div>
             )}
         </div>
-
-        {/* Leg Mode Toggle (Only on Leg Day) */}
-        {currentDay === 3 && (
-            <div className="flex justify-end mb-4">
-                <button 
-                    onClick={toggleLegMode}
-                    className="flex items-center gap-2 text-xs font-bold text-[#4F6F52] bg-[#D2E3D2] px-3 py-1.5 rounded-full hover:bg-[#c1d6c1] transition-colors"
-                >
-                    {legMode === 'compound' ? <ToggleLeft size={18}/> : <ToggleRight size={18}/>}
-                    {legMode === 'compound' ? 'Mode: Heavy Compounds' : 'Mode: Machine Safety'}
-                </button>
-            </div>
-        )}
 
         <div className="space-y-4">
           {todayWorkout.exercises.map((item) => {
