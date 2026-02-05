@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ComposedChart, Area } from 'recharts';
-import { Plus, Trash2, ChevronDown, ChevronUp, Check, Scale, Ruler, Utensils, Dumbbell, Activity, Calendar, Info, Filter, Save, History, Repeat, AlertTriangle, Battery, HeartPulse, CheckCircle2, XCircle } from 'lucide-react';
+import { Plus, Trash2, ChevronDown, ChevronUp, Check, Scale, Ruler, Utensils, Dumbbell, Activity, Calendar, Info, Filter, Save, History, Repeat, AlertTriangle, Battery, HeartPulse, CheckCircle2, XCircle, ToggleLeft, ToggleRight, Download, FileJson, FileSpreadsheet } from 'lucide-react';
 
 // --- Material Design 3 Color Tokens ---
 const colors = {
@@ -19,67 +19,85 @@ const colors = {
   error: '#BA1A1A',
 };
 
-// --- DATA: Recipes (The "Menu A" Protocol) ---
+// --- DATA: Recipes (The "1-Scoop Median" Protocol) ---
 const RECIPES = [
   {
     id: 'r1',
-    title: 'Volume-Boosted Chicken Meatballs',
-    tags: ['Lunch', 'Batch Prep', 'High Protein'],
-    calories: '280 kcal (per 5)',
-    protein: '45g',
+    title: 'Chicken Quaker Oats Meatballs (Dinner)',
+    tags: ['Dinner', 'Batch Prep', 'High Protein'],
+    calories: '372 kcal (per 4)',
+    protein: '49g',
     ingredients: [
       '1 kg Minced Chicken Breast',
-      '120g Powdered Oats',
-      '3 Cups Grated Bottle Gourd (Squeezed dry)',
+      '150g Quaker Oats (Powdered)',
+      '3 Cups Grated Bottle Gourd (Squeezed dry) - ESSENTIAL for moisture',
       '2 tbsp Ginger/Garlic Paste',
-      'Spices: Turmeric, Chili, Garam Masala'
+      'Spices: Turmeric, Chili, Garam Masala, Fresh Coriander'
     ],
     instructions: [
       'Mix all ingredients thoroughly in a large bowl.',
-      'Form into 20 large balls (This is a 4-day supply).',
+      'Form into 20 large balls (This is a 5-day supply).',
       'Air Fry or Bake at 200°C for 15-20 mins until golden.',
-      'Eat 5 meatballs per day for lunch.'
+      'Eat 4 meatballs per day for Dinner. NO OIL added.'
     ]
   },
   {
     id: 'r2',
-    title: 'Lipid-Control Brown Rice Pulao',
-    tags: ['Dinner', 'Batch Prep', 'Fiber Rich'],
-    calories: '350 kcal',
-    protein: '30g',
+    title: 'Chicken Brown Rice Pulao (Lunch)',
+    tags: ['Lunch', 'Batch Prep', 'Carb Fuel'],
+    calories: '520 kcal (w/ oil)',
+    protein: '35g',
     ingredients: [
-      '1 Cup Raw Brown Rice (Soaked 30 mins)',
-      '750g Cubed Chicken Breast',
-      '3 Cups Chopped Veggies (Beans, Carrots, Peas)',
-      '1 tbsp Oil/Ghee',
-      'Whole Spices (Bay leaf, Cumin)'
+      '1.5 Cups (~285g) Raw Brown Rice (Soaked 30 mins)',
+      '500g Cubed Chicken Breast',
+      '3 Cups (~400g) Frozen Mixed Veggies',
+      '1 tbsp (15ml) Oil/Ghee (Total for batch)',
+      'Whole Spices (Bay leaf, Cumin, Cardamom)'
     ],
     instructions: [
-      'Sauté spices and chicken in pressure cooker with oil.',
-      'Add the 3 cups of veggies and sauté for 2 mins.',
-      'Add soaked rice and 2.5 cups water.',
+      'Sauté spices and chicken in pressure cooker with 15ml oil.',
+      'Add the 3 cups (400g) of veggies and sauté for 2 mins.',
+      'Add soaked rice and 3.5 cups water.',
       'Pressure cook for 3-4 whistles.',
-      'IMMEDIATE: Divide into 3 containers to prevent overeating.'
+      'Divide into 3 containers immediately (3-Day Supply). Eat 1 for Lunch.'
     ]
   },
   {
     id: 'r3',
-    title: 'Morning Power Scramble',
+    title: 'Morning Power Scramble + Oats',
     tags: ['Breakfast', 'Quick'],
-    calories: '320 kcal',
-    protein: '24g',
+    calories: '403 kcal',
+    protein: '28g',
     ingredients: [
       '4 Whole Eggs',
+      '30g Raw Oats (Optional - Add to bowl)',
       '1 Cup Chopped Spinach or Beans',
       'Salt & Pepper',
-      'Oil Spray'
+      '1 tsp (5ml) Oil/Butter for pan'
     ],
     instructions: [
-      'Sauté veggies in a non-stick pan until soft.',
-      'Whisk eggs and pour over veggies.',
-      'Scramble until cooked but soft.'
+      'Heat 5ml oil in non-stick pan.',
+      'Sauté veggies until soft.',
+      'Whisk eggs and pour over veggies. Scramble.',
+      'Eat oats separately or mixed in.'
     ]
   },
+  {
+    id: 'r4',
+    title: 'Pre-Workout Power Snack',
+    tags: ['Snack', 'Energy'],
+    calories: '220 kcal',
+    protein: '25g',
+    ingredients: [
+      '1 Medium Banana',
+      '1 Scoop Protein Powder (Soy/Whey)',
+      'Water'
+    ],
+    instructions: [
+      'Eat banana 30 mins before gym for glycogen.',
+      'Drink shake with water.'
+    ]
+  }
 ];
 
 // --- DATA: Workout Routine (Clinical Hypertrophy Protocol - CONSOLIDATED) ---
@@ -175,7 +193,7 @@ const WORKOUTS = {
         sets: 3, 
         reps: '10-12/leg', 
         type: 'standard', 
-        note: 'NO WEIGHT yet. Focus on balance and glute contraction.' 
+        note: 'NO WEIGHT yet. Lean forward slightly. Focus on balance.' 
       },
       { id: 'cardio3', name: 'Incline Walk (Zone 2)', sets: 1, reps: '25-30 mins', type: 'cardio' }
     ]
@@ -320,6 +338,50 @@ export default function App() {
       }
   };
 
+  // EXPORT FUNCTIONS
+  const exportToCSV = () => {
+    // Headers
+    const headers = ["Date", "Weight (kg)", "Waist (in)", "Chest (in)"];
+    // Map data
+    const rows = progressLogs.map(log => [
+      log.date,
+      log.weight || "",
+      log.waist || "",
+      log.chest || ""
+    ]);
+
+    // Combine
+    let csvContent = "data:text/csv;charset=utf-8,"
+      + headers.join(",") + "\n"
+      + rows.map(e => e.join(",")).join("\n");
+
+    // Download
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "metabolic_progress.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const backupData = () => {
+    const data = {
+      progressLogs,
+      workoutLogs,
+      baselineHR,
+      currentDay,
+      readinessStatus
+    };
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", "metabolic_backup.json");
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+  };
+
   // Save Workout Set
   const saveSetLog = (exerciseId, setIndex, field, value) => {
     const currentLog = workoutLogs[exerciseId] || { sets: [] };
@@ -426,6 +488,29 @@ export default function App() {
         </div>
       </Card>
 
+      {/* Data Management Card */}
+      <Card className="border border-stone-200">
+        <h2 className="text-sm font-bold text-[#43474E] mb-3 flex items-center gap-2">
+          <Save size={16}/> Data & Backup
+        </h2>
+        <div className="grid grid-cols-2 gap-3">
+           <button 
+             onClick={exportToCSV}
+             className="flex flex-col items-center justify-center p-3 bg-stone-50 rounded-xl hover:bg-[#D2E3D2] transition-colors border border-stone-100"
+           >
+              <FileSpreadsheet size={24} className="text-[#4F6F52] mb-1"/>
+              <span className="text-xs font-bold text-[#43474E]">Export Excel</span>
+           </button>
+           <button 
+             onClick={backupData}
+             className="flex flex-col items-center justify-center p-3 bg-stone-50 rounded-xl hover:bg-[#D2E3D2] transition-colors border border-stone-100"
+           >
+              <FileJson size={24} className="text-[#5D4037] mb-1"/>
+              <span className="text-xs font-bold text-[#43474E]">Backup Full</span>
+           </button>
+        </div>
+      </Card>
+
       {/* Today's Meal Plan Snapshot */}
       <Card>
         <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
@@ -435,15 +520,15 @@ export default function App() {
           <div className="flex gap-4 items-center">
              <div className="w-16 text-sm font-bold text-[#43474E]">Lunch</div>
              <div className="flex-1 p-3 bg-stone-50 rounded-xl border border-stone-100">
-                <div className="font-bold">5 Meatballs</div>
-                <div className="text-xs text-[#73777F]">With Cucumber slices</div>
+                <div className="font-bold">Chix Pulao</div>
+                <div className="text-xs text-[#73777F]">500g Chix / 1.5 Cups Rice</div>
              </div>
           </div>
           <div className="flex gap-4 items-center">
              <div className="w-16 text-sm font-bold text-[#43474E]">Dinner</div>
              <div className="flex-1 p-3 bg-stone-50 rounded-xl border border-stone-100">
-                <div className="font-bold">Brown Rice Pulao</div>
-                <div className="text-xs text-[#73777F]">Strict 1:1 Veggie Ratio</div>
+                <div className="font-bold">4 Meatballs</div>
+                <div className="text-xs text-[#73777F]">1kg Chix + 150g Quaker</div>
              </div>
           </div>
         </div>
