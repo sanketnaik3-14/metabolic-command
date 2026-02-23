@@ -4,14 +4,13 @@ import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged }
 import { getFirestore, doc, setDoc, onSnapshot } from 'firebase/firestore';
 import { 
   Activity, Flame, Clock, Dumbbell, Utensils, 
-  Scale, Timer, History, Save, HeartPulse, ChevronRight, AlertCircle
+  Scale, Timer, History, Save, HeartPulse, ChevronRight, 
+  CheckCircle2, Pill, BookOpen, Coffee, Moon
 } from 'lucide-react';
 
 // ==========================================
 // 1. SECURE FIREBASE INITIALIZATION
-// (Using environment variables, no hardcoded keys)
 // ==========================================
-
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -29,13 +28,13 @@ const appId = "metabolic-command-v2";
 // 2. ENDOCRINE PROTOCOL DATA
 // ==========================================
 const WORKOUT_CYCLE = {
-  1: { type: 'LIFT', title: 'Upper Body (Hypertrophy)', focus: 'Chest, Back, Shoulders, Arms', rules: 'Strict 2-minute rests. 2 RIR. No Cardio.', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30' },
-  2: { type: 'CARDIO', title: 'The Flush (Zone 2)', focus: 'Aerobic Base, Cortisol Flush', rules: '45-55 mins. HR: 138-150 bpm. No Lifting.', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30' },
-  3: { type: 'LIFT', title: 'Lower Body & Core', focus: 'Quads, Hams, Core Matrix', rules: 'Strict 2-minute rests. 2 RIR. 3-1-1 Tempo.', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30' },
+  1: { type: 'LIFT', title: 'Upper Body (Hypertrophy)', focus: 'Chest, Back, Shoulders, Arms', rules: 'Strict 2-minute rests. 2 RIR.', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30' },
+  2: { type: 'CARDIO', title: 'The Flush (Zone 2)', focus: 'Aerobic Base, Cortisol Flush', rules: '45-55 mins. HR: 138-150 bpm.', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30' },
+  3: { type: 'LIFT', title: 'Lower Body & Core', focus: 'Quads, Hams, Core Matrix', rules: 'Strict 2-minute rests. 3-1-1 Tempo.', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30' },
   4: { type: 'CARDIO', title: 'Engine Builder (4x4)', focus: 'VO2 Max, Mitochondrial Density', rules: '4x4 Intervals. Push: 167-178. Rest: <138.', color: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/30' },
-  5: { type: 'LIFT', title: 'Upper Body (Hypertrophy)', focus: 'Chest, Back, Shoulders, Arms', rules: 'Strict 2-minute rests. 2 RIR. No Cardio.', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30' },
-  6: { type: 'CARDIO', title: 'The Flush (Zone 2)', focus: 'Aerobic Base, Cortisol Flush', rules: '45-55 mins. HR: 138-150 bpm. No Lifting.', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30' },
-  7: { type: 'LIFT', title: 'Lower Body & Core', focus: 'Quads, Hams, Core Matrix', rules: 'Strict 2-minute rests. 2 RIR. 3-1-1 Tempo.', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30' },
+  5: { type: 'LIFT', title: 'Upper Body (Hypertrophy)', focus: 'Chest, Back, Shoulders, Arms', rules: 'Strict 2-minute rests. 2 RIR.', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30' },
+  6: { type: 'CARDIO', title: 'The Flush (Zone 2)', focus: 'Aerobic Base, Cortisol Flush', rules: '45-55 mins. HR: 138-150 bpm.', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30' },
+  7: { type: 'LIFT', title: 'Lower Body & Core', focus: 'Quads, Hams, Core Matrix', rules: 'Strict 2-minute rests. 3-1-1 Tempo.', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30' },
   8: { type: 'REST', title: 'Active Rest + Refeed', focus: 'Thyroid Rescue, Glycogen Reload', rules: '+150g Complex Carbs today. Zero lifting.', color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/30' },
 };
 
@@ -64,63 +63,42 @@ const EXERCISES = {
 // ==========================================
 const RestTimer = () => {
   const [timeLeft, setTimeLeft] = useState(0);
-  
+
   useEffect(() => {
-    if (timeLeft <= 0) return;
-    const intervalId = setInterval(() => {
-      setTimeLeft(t => t - 1);
-    }, 1000);
+    const checkTimer = () => {
+      const end = localStorage.getItem('mc_restEndTime');
+      if (end) {
+        const remaining = Math.floor((parseInt(end) - Date.now()) / 1000);
+        if (remaining > 0) {
+          setTimeLeft(remaining);
+        } else {
+          setTimeLeft(0);
+          localStorage.removeItem('mc_restEndTime');
+        }
+      }
+    };
+    
+    checkTimer(); 
+    const intervalId = setInterval(checkTimer, 1000); 
     return () => clearInterval(intervalId);
-  }, [timeLeft]);
+  }, []);
+
+  const startTimer = () => {
+    const endTime = Date.now() + 120 * 1000;
+    localStorage.setItem('mc_restEndTime', endTime.toString());
+    setTimeLeft(120);
+  };
 
   const formatTime = (secs) => `${Math.floor(secs / 60)}:${(secs % 60).toString().padStart(2, '0')}`;
 
   return (
     <button 
-      onClick={() => setTimeLeft(120)}
-      className={`flex items-center gap-1 px-3 py-1.5 rounded text-xs font-bold transition-colors ${timeLeft > 0 ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}
+      onClick={startTimer}
+      className={`flex items-center gap-1 px-3 py-1.5 rounded text-xs font-bold transition-colors shadow-sm ${timeLeft > 0 ? 'bg-amber-500 text-gray-900 border border-amber-400 animate-pulse' : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white border border-gray-700'}`}
     >
       <Timer size={14} />
-      {timeLeft > 0 ? formatTime(timeLeft) : '2 MIN REST'}
+      {timeLeft > 0 ? formatTime(timeLeft) : 'START 2 MIN REST'}
     </button>
-  );
-};
-
-const FastingCountdown = ({ targetIso }) => {
-  const [now, setNow] = useState(new Date());
-
-  useEffect(() => {
-    const timer = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  if (!targetIso) return null;
-
-  const targetDate = new Date(targetIso);
-  const diff = targetDate - now;
-  const isActive = diff > 0;
-
-  if (!isActive) {
-    return (
-      <div className="p-6 rounded-xl border flex flex-col items-center justify-center text-center bg-emerald-900/20 border-emerald-500/50">
-        <div className="text-xs font-bold text-gray-400 tracking-widest mb-2 uppercase">Eating Window Open</div>
-        <div className="text-4xl md:text-5xl font-mono font-bold text-emerald-400">Fast Complete!</div>
-      </div>
-    );
-  }
-
-  const h = Math.floor(diff / (1000 * 60 * 60));
-  const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-  const s = Math.floor((diff % (1000 * 60)) / 1000);
-
-  return (
-    <div className="p-6 rounded-xl border flex flex-col items-center justify-center text-center bg-cyan-900/20 border-cyan-500/50">
-      <div className="text-xs font-bold text-gray-400 tracking-widest mb-2 uppercase">Fasting Window Active</div>
-      <div className="text-4xl md:text-5xl font-mono font-bold text-cyan-400">
-        {h}h {m}m {s}s
-      </div>
-      <div className="text-sm text-gray-400 mt-2">Zero calories allowed. Forces Insulin (10.50) down.</div>
-    </div>
   );
 };
 
@@ -129,19 +107,24 @@ const FastingCountdown = ({ targetIso }) => {
 // ==========================================
 export default function App() {
   const [user, setUser] = useState(null);
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState(() => localStorage.getItem('mc_activeTab') || 'dashboard');
   
   // Database State
   const [cycleDay, setCycleDay] = useState(1);
-  const [fastingTarget, setFastingTarget] = useState(null);
-  const [workoutHistory, setWorkoutHistory] = useState({});
+  const [workoutLogs, setWorkoutLogs] = useState({});
   const [matrixLogs, setMatrixLogs] = useState([]);
   
   // Local Form State
-  const [customFastTime, setCustomFastTime] = useState('');
-  const [morningRHR, setMorningRHR] = useState('');
-  const [exerciseInputs, setExerciseInputs] = useState({});
+  const [morningRHR, setMorningRHR] = useState(() => localStorage.getItem('mc_morningRHR') || '');
+  const [exerciseInputs, setExerciseInputs] = useState(() => {
+    const saved = localStorage.getItem('mc_exerciseInputs');
+    return saved ? JSON.parse(saved) : {};
+  });
   const [newLog, setNewLog] = useState({ date: new Date().toISOString().split('T')[0], weight: '', waist: '' });
+
+  useEffect(() => { localStorage.setItem('mc_activeTab', activeTab); }, [activeTab]);
+  useEffect(() => { localStorage.setItem('mc_morningRHR', morningRHR); }, [morningRHR]);
+  useEffect(() => { localStorage.setItem('mc_exerciseInputs', JSON.stringify(exerciseInputs)); }, [exerciseInputs]);
 
   // ----------------------------------------
   // FIREBASE AUTH & REALTIME SYNC
@@ -166,21 +149,16 @@ export default function App() {
 
   useEffect(() => {
     if (!user) return;
-
-    // We store all data in a single document for this user to comply with simple query rules
     const userDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'appData', 'state');
     
     const unsub = onSnapshot(userDocRef, (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
         if (data.cycleDay) setCycleDay(data.cycleDay);
-        if (data.fastingTarget) setFastingTarget(data.fastingTarget);
-        if (data.workoutHistory) setWorkoutHistory(data.workoutHistory);
+        if (data.workoutLogs) setWorkoutLogs(data.workoutLogs);
         if (data.matrixLogs) setMatrixLogs(data.matrixLogs);
       }
-    }, (error) => {
-      console.error("Firestore Listen Error:", error);
-    });
+    }, (error) => console.error("Firestore Listen Error:", error));
 
     return () => unsub();
   }, [user]);
@@ -193,32 +171,32 @@ export default function App() {
     try {
       const userDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'appData', 'state');
       await setDoc(userDocRef, payload, { merge: true });
-    } catch (e) {
-      console.error("Error saving data:", e);
-    }
+    } catch (e) { console.error("Error saving data:", e); }
   };
 
-  const startCustomFast = () => {
-    if (!customFastTime) return;
-    const [hours, minutes] = customFastTime.split(':');
-    const target = new Date();
-    target.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-    
-    // If time is in the future today, it means they started fasting yesterday
-    if (target > new Date()) target.setDate(target.getDate() - 1);
-    target.setHours(target.getHours() + 14); // Add 14 hours
-    
-    saveToDb({ fastingTarget: target.toISOString() });
+  const handleExerciseInput = (exName, setIndex, field, value) => {
+    const key = `${exName}-${setIndex}`;
+    setExerciseInputs(prev => ({ ...prev, [key]: { ...prev[key], [field]: value } }));
   };
 
-  const logWorkoutSet = (exerciseName, weight, reps) => {
+  const logSetToDb = (exName, setIndex, weight, reps) => {
     if (!weight || !reps) return;
-    const newHistory = {
-      ...workoutHistory,
-      [exerciseName]: { weight, reps, date: new Date().toISOString().split('T')[0] }
+    const today = new Date().toISOString().split('T')[0];
+    
+    const exHistory = workoutLogs[exName] || {};
+    const todaySets = [...(exHistory[today] || [])];
+    todaySets[setIndex] = { weight, reps };
+    
+    const newLogs = {
+      ...workoutLogs,
+      [exName]: {
+        ...exHistory,
+        [today]: todaySets
+      }
     };
-    saveToDb({ workoutHistory: newHistory });
-    setExerciseInputs(prev => ({ ...prev, [exerciseName]: { weight: '', reps: '' } }));
+    
+    saveToDb({ workoutLogs: newLogs });
+    setExerciseInputs(prev => ({...prev, [`${exName}-${setIndex}`]: {weight:'', reps:''}}));
   };
 
   const saveMatrixLog = () => {
@@ -228,13 +206,6 @@ export default function App() {
     setNewLog({ ...newLog, weight: '', waist: '' });
   };
 
-  const handleExerciseInput = (exName, field, value) => {
-    setExerciseInputs(prev => ({ ...prev, [exName]: { ...prev[exName], [field]: value } }));
-  };
-
-  // ----------------------------------------
-  // RHR LOGIC
-  // ----------------------------------------
   const getRHRStatus = () => {
     if (!morningRHR) return null;
     const rhr = parseInt(morningRHR);
@@ -242,14 +213,12 @@ export default function App() {
     if (rhr <= 77) return { color: 'text-amber-400', border: 'border-amber-500/50', bg: 'bg-amber-500/10', text: 'YELLOW: Mild Fatigue. Drop weights by 10%. Stop 3 reps short of failure.' };
     return { color: 'text-red-400', border: 'border-red-500/50', bg: 'bg-red-500/10', text: 'RED: System Overload. ABORT WORKOUT. Do 30m outdoor walk only.' };
   };
-  const rhrStatus = getRHRStatus();
 
   // ----------------------------------------
   // VIEWS
   // ----------------------------------------
   const renderDashboard = () => (
     <div className="space-y-6 animate-fadeIn">
-      {/* RHR Traffic Light */}
       <div className="bg-gray-800/40 rounded-2xl p-6 border border-gray-700/50 shadow-xl">
         <h3 className="text-xl font-bold flex items-center gap-2 mb-4"><HeartPulse className="text-red-400"/> Morning Readiness (RHR)</h3>
         <div className="flex flex-col md:flex-row gap-4 items-center">
@@ -263,40 +232,14 @@ export default function App() {
               className="bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 w-32 min-w-[120px] text-white outline-none focus:border-cyan-500"
             />
           </div>
-          {rhrStatus && (
-            <div className={`flex-1 p-3 rounded-xl border ${rhrStatus.bg} ${rhrStatus.border} ${rhrStatus.color} text-sm font-bold`}>
-              {rhrStatus.text}
+          {getRHRStatus() && (
+            <div className={`flex-1 p-3 rounded-xl border ${getRHRStatus().bg} ${getRHRStatus().border} ${getRHRStatus().color} text-sm font-bold`}>
+              {getRHRStatus().text}
             </div>
           )}
         </div>
       </div>
 
-      {/* Fasting Engine */}
-      <div className="bg-gray-800/40 rounded-2xl p-6 border border-gray-700/50 shadow-xl">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-          <div>
-            <h3 className="text-xl font-bold flex items-center gap-2"><Clock className="text-cyan-400"/> 14-Hour Fast</h3>
-            <p className="text-sm text-gray-400 mt-1">Select the time you took your last bite of food.</p>
-          </div>
-          <div className="flex items-center gap-2 bg-gray-900 p-2 rounded-lg border border-gray-700">
-            <input 
-              type="time" 
-              value={customFastTime}
-              onChange={(e) => setCustomFastTime(e.target.value)}
-              className="bg-gray-800 text-gray-200 text-sm px-3 py-2 rounded outline-none border border-gray-700 focus:border-cyan-500"
-            />
-            <button 
-              onClick={startCustomFast}
-              className="bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 px-4 py-2 rounded text-sm font-bold hover:bg-cyan-500/30 transition-colors"
-            >
-              START
-            </button>
-          </div>
-        </div>
-        <FastingCountdown targetIso={fastingTarget} />
-      </div>
-
-      {/* Cycle Selector */}
       <div className="bg-gray-800/40 rounded-2xl p-6 border border-gray-700/50 shadow-xl">
         <h3 className="text-xl font-bold mb-4">The 8-Day Engine Cycle</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -323,49 +266,78 @@ export default function App() {
 
   const renderProtocol = () => {
     const todayPlan = WORKOUT_CYCLE[cycleDay];
+    const today = new Date().toISOString().split('T')[0];
     
     return (
       <div className="space-y-6 animate-fadeIn">
         <div className={`p-6 rounded-2xl border ${todayPlan.bg} ${todayPlan.border} shadow-xl relative overflow-hidden`}>
           <div className="relative z-10">
             <h2 className={`text-3xl font-bold ${todayPlan.color} mb-2`}>Day {cycleDay}: {todayPlan.title}</h2>
-            <p className="text-gray-300 font-medium">{todayPlan.rules}</p>
+            <p className="text-gray-300 font-medium mb-4">{todayPlan.rules}</p>
+            {todayPlan.type === 'LIFT' && <RestTimer />}
           </div>
         </div>
 
         {todayPlan.type === 'LIFT' && (
-          <div className="space-y-4">
+          <div className="space-y-6">
             {EXERCISES[todayPlan.title]?.map((ex, idx) => {
-              const currentInput = exerciseInputs[ex.name] || { weight: '', reps: '' };
-              const history = workoutHistory[ex.name];
+              const exHistory = workoutLogs[ex.name] || {};
+              const todaySets = exHistory[today] || [];
               
+              const pastDates = Object.keys(exHistory).filter(d => d !== today).sort((a,b) => new Date(b) - new Date(a));
+              let bestPrevSet = null;
+              if (pastDates.length > 0) {
+                const lastDate = pastDates[0];
+                bestPrevSet = exHistory[lastDate].reduce((best, current) => Number(current.weight) > Number(best.weight) ? current : best, exHistory[lastDate][0]);
+                bestPrevSet.date = lastDate;
+              }
+
               return (
-              <div key={idx} className="bg-gray-800/40 p-5 rounded-xl border border-gray-700/50 flex flex-col lg:flex-row lg:items-center justify-between gap-6 shadow-md">
-                <div className="flex-1">
-                  <h4 className="font-bold text-lg text-gray-100">{ex.name}</h4>
-                  <div className="flex items-center gap-3 text-sm text-gray-400 mt-2">
-                    <span className="bg-gray-900 px-3 py-1 rounded border border-gray-700 font-medium">{ex.sets} Sets</span>
-                    <span className="bg-gray-900 px-3 py-1 rounded border border-gray-700 font-medium">{ex.reps} Reps</span>
-                    <RestTimer />
+              <div key={idx} className="bg-gray-800/40 p-5 rounded-2xl border border-gray-700/50 shadow-md">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 border-b border-gray-700/50 pb-4">
+                  <div>
+                    <h4 className="font-bold text-xl text-gray-100">{ex.name}</h4>
+                    <div className="text-sm text-gray-400 mt-1 font-medium tracking-wide">
+                      Target: {ex.sets} Sets × {ex.reps} Reps
+                    </div>
                   </div>
+                  {bestPrevSet && (
+                    <div className="bg-gray-900 px-4 py-2 rounded-lg border border-gray-800 text-right">
+                      <div className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1 flex items-center gap-1 justify-end"><History size={12}/> Last Session Best</div>
+                      <div className="text-sm text-gray-300 font-mono">
+                        <span className="text-cyan-400 font-bold text-base">{bestPrevSet.weight} kg</span> × {bestPrevSet.reps} reps
+                      </div>
+                    </div>
+                  )}
                 </div>
                 
-                <div className="bg-gray-900 p-4 rounded-xl border border-gray-800 lg:w-80">
-                  <div className="text-xs text-gray-500 font-bold mb-2 flex items-center gap-1"><History size={14}/> PREVIOUS BEST</div>
-                  {history ? (
-                    <div className="text-sm text-gray-200 mb-4 font-mono">
-                      <span className="text-cyan-400 font-bold">{history.weight} kg</span> × <span className="text-cyan-400 font-bold">{history.reps} reps</span> 
-                      <span className="text-[11px] text-gray-500 ml-2 block sm:inline">({history.date})</span>
-                    </div>
-                  ) : (
-                    <div className="text-sm text-gray-600 mb-4 italic">No data logged yet.</div>
-                  )}
-                  
-                  <div className="flex items-center gap-2">
-                    <input type="number" placeholder="Kg" value={currentInput.weight} onChange={e=>handleExerciseInput(ex.name, 'weight', e.target.value)} className="w-full bg-gray-800 text-sm px-3 py-2 rounded border border-gray-700 text-white outline-none focus:border-blue-500" />
-                    <input type="number" placeholder="Reps" value={currentInput.reps} onChange={e=>handleExerciseInput(ex.name, 'reps', e.target.value)} className="w-full bg-gray-800 text-sm px-3 py-2 rounded border border-gray-700 text-white outline-none focus:border-blue-500" />
-                    <button onClick={() => logWorkoutSet(ex.name, currentInput.weight, currentInput.reps)} className="bg-blue-600/20 text-blue-400 p-2.5 rounded hover:bg-blue-600/40 border border-blue-500/30 transition-colors"><Save size={18}/></button>
-                  </div>
+                <div className="space-y-2">
+                  {[...Array(ex.sets)].map((_, setIdx) => {
+                    const savedSet = todaySets[setIdx];
+                    const currentInput = exerciseInputs[`${ex.name}-${setIdx}`] || { weight: '', reps: '' };
+                    
+                    return (
+                      <div key={setIdx} className={`flex items-center gap-3 p-2 rounded-lg border ${savedSet ? 'bg-emerald-900/10 border-emerald-500/20' : 'bg-gray-900 border-gray-800'}`}>
+                        <div className="w-14 text-xs font-bold text-gray-500 uppercase tracking-widest pl-2">Set {setIdx + 1}</div>
+                        
+                        {savedSet ? (
+                          <>
+                            <div className="flex-1 flex gap-4 text-sm font-mono text-gray-200">
+                              <span className="bg-gray-800 px-3 py-1.5 rounded">{savedSet.weight} kg</span>
+                              <span className="bg-gray-800 px-3 py-1.5 rounded">{savedSet.reps} reps</span>
+                            </div>
+                            <CheckCircle2 className="text-emerald-500 mr-2" size={20} />
+                          </>
+                        ) : (
+                          <>
+                            <input type="number" placeholder="Kg" value={currentInput.weight} onChange={e=>handleExerciseInput(ex.name, setIdx, 'weight', e.target.value)} className="w-20 sm:w-24 bg-gray-800 text-sm px-3 py-1.5 rounded border border-gray-700 text-white outline-none focus:border-blue-500" />
+                            <input type="number" placeholder="Reps" value={currentInput.reps} onChange={e=>handleExerciseInput(ex.name, setIdx, 'reps', e.target.value)} className="w-20 sm:w-24 bg-gray-800 text-sm px-3 py-1.5 rounded border border-gray-700 text-white outline-none focus:border-blue-500" />
+                            <button onClick={() => logSetToDb(ex.name, setIdx, currentInput.weight, currentInput.reps)} className="ml-auto bg-blue-600/20 text-blue-400 p-1.5 sm:px-3 sm:py-1.5 rounded hover:bg-blue-600/40 border border-blue-500/30 font-bold text-xs sm:text-sm transition-colors">SAVE</button>
+                          </>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )})}
@@ -375,18 +347,11 @@ export default function App() {
         {todayPlan.type === 'CARDIO' && (
           <div className="bg-gray-800/40 p-6 rounded-2xl border border-gray-700/50 shadow-xl space-y-6">
             <h3 className="text-xl font-bold flex items-center gap-2"><HeartPulse className={todayPlan.color}/> Cardiovascular Protocol</h3>
-            
             {cycleDay === 2 || cycleDay === 6 ? (
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="bg-gray-900 p-6 rounded-xl border border-emerald-500/20">
                   <div className="text-xs font-bold text-emerald-500 mb-2 tracking-widest">MAGENE TARGET ZONE</div>
                   <div className="text-5xl font-mono font-bold text-white mb-2">138 - 150 <span className="text-xl text-gray-500 font-sans">bpm</span></div>
-                  <p className="text-sm text-gray-400 mt-4">Strictly 60-70% of Heart Rate Reserve.</p>
-                </div>
-                <div className="space-y-4 text-sm text-gray-300 flex flex-col justify-center">
-                  <div className="flex items-start gap-2"><ChevronRight className="text-emerald-500 mt-0.5" size={16}/><span><strong className="text-white">Duration:</strong> 45 to 55 minutes.</span></div>
-                  <div className="flex items-start gap-2"><ChevronRight className="text-emerald-500 mt-0.5" size={16}/><span><strong className="text-white">Modality:</strong> Elliptical or Incline Walk.</span></div>
-                  <div className="flex items-start gap-2"><ChevronRight className="text-emerald-500 mt-0.5" size={16}/><span><strong className="text-white">Focus:</strong> Fat oxidation & Cortisol flush.</span></div>
                 </div>
               </div>
             ) : (
@@ -399,9 +364,6 @@ export default function App() {
                   <div className="text-xs font-bold text-blue-500 mb-2 tracking-widest">ACTIVE RECOVERY (3 MINUTES)</div>
                   <div className="text-4xl font-mono font-bold text-white">&lt; 138 <span className="text-xl text-gray-500 font-sans">bpm</span></div>
                 </div>
-                <div className="p-4 bg-gray-900 rounded-xl text-sm text-gray-300 border border-gray-700 text-center font-bold tracking-wide">
-                  REPEAT CYCLE EXACTLY 4 TIMES.
-                </div>
               </div>
             )}
           </div>
@@ -412,63 +374,173 @@ export default function App() {
 
   const renderFuel = () => (
     <div className="space-y-6 animate-fadeIn">
-      <div className="bg-gray-800/40 rounded-2xl p-6 border border-gray-700/50 shadow-xl">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-          <h3 className="text-xl font-bold flex items-center gap-2"><Utensils className="text-amber-400"/> Daily Fuel Matrix</h3>
-          <span className="bg-gray-900 px-4 py-1.5 text-xs font-bold text-gray-300 border border-gray-700 rounded-full tracking-wider">~1,640 KCAL | 160g PRO</span>
+      
+      {/* Dynamic Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <h3 className="text-2xl font-bold flex items-center gap-2"><Utensils className="text-amber-400"/> Diet & Supplement Vault</h3>
+        {cycleDay === 8 ? (
+          <span className="bg-purple-900/40 px-4 py-1.5 text-xs font-bold text-purple-300 border border-purple-500/50 rounded-full tracking-wider animate-pulse">DAY 8: HIGH CARB REFEED ACTIVE</span>
+        ) : (
+          <span className="bg-gray-900 px-4 py-1.5 text-xs font-bold text-gray-300 border border-gray-700 rounded-full tracking-wider">DEFICIT: ~1,650 KCAL | 160g PRO</span>
+        )}
+      </div>
+
+      {/* Medication Dashboard */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="bg-gradient-to-br from-gray-900 to-gray-800 p-5 rounded-2xl border border-gray-700/50 shadow-md">
+          <h4 className="font-bold text-cyan-400 mb-4 flex items-center gap-2"><Coffee size={18}/> Morning Meds & Prep</h4>
+          <ul className="space-y-3">
+            <li className="flex items-start gap-3 text-sm text-gray-200 bg-gray-900/50 p-2 rounded-lg border border-gray-800">
+              <Pill className="text-cyan-500 shrink-0 mt-0.5" size={16}/> 
+              <div><strong className="text-white block">Prescriptions:</strong> Lamotrigine, Escitalopram, Homochek</div>
+            </li>
+            <li className="flex items-start gap-3 text-sm text-gray-200 bg-gray-900/50 p-2 rounded-lg border border-gray-800">
+              <Pill className="text-cyan-500 shrink-0 mt-0.5" size={16}/> 
+              <div><strong className="text-white block">Supplements:</strong> Multivitamin, Fish Oil, Collagen (4g Carbs)</div>
+            </li>
+            <li className="flex items-start gap-3 text-sm text-gray-200 bg-gray-900/50 p-2 rounded-lg border border-gray-800">
+              <Activity className="text-amber-500 shrink-0 mt-0.5" size={16}/> 
+              <div><strong className="text-white block">Pre-Workout:</strong> 1 Banana + Creatine</div>
+            </li>
+          </ul>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-gray-900 p-5 rounded-xl border border-gray-800">
-            <h4 className="font-bold text-cyan-400 mb-2">Meal 1: Break-Fast</h4>
-            <div className="text-xs text-gray-400 mb-3 bg-gray-800/50 p-2 rounded border border-gray-700/50">
-              <span className="text-white font-medium">Meds:</span> Lamotrigine, Escitalopram, Fish Oil, Homochek, Collagen (4g C).
-            </div>
-            <div className="text-sm text-gray-200">
-              <span className="text-white font-bold block mb-1">Diet:</span> 
-              4 Whole Eggs + Sautéed French Beans (Low Oil).
-            </div>
-          </div>
+        <div className="bg-gradient-to-br from-gray-900 to-gray-800 p-5 rounded-2xl border border-gray-700/50 shadow-md">
+          <h4 className="font-bold text-indigo-400 mb-4 flex items-center gap-2"><Moon size={18}/> Night Meds</h4>
+          <ul className="space-y-3">
+            <li className="flex items-start gap-3 text-sm text-gray-200 bg-gray-900/50 p-2 rounded-lg border border-gray-800">
+              <Pill className="text-indigo-500 shrink-0 mt-0.5" size={16}/> 
+              <div><strong className="text-white block">Prescriptions:</strong> Rosuvastatin, Fenofibrate</div>
+            </li>
+            <li className="flex items-start gap-3 text-sm text-gray-200 bg-gray-900/50 p-2 rounded-lg border border-gray-800">
+              <Pill className="text-indigo-500 shrink-0 mt-0.5" size={16}/> 
+              <div><strong className="text-white block">Supplements:</strong> Magnesium, Probiotics</div>
+            </li>
+          </ul>
+        </div>
+      </div>
 
-          <div className="bg-gray-900 p-5 rounded-xl border border-gray-800">
-            <h4 className="font-bold text-emerald-400 mb-2">Meal 2: The Hot Lunch</h4>
-            <div className="text-sm text-gray-200 mt-5">
-              <span className="text-white font-bold block mb-1">Diet:</span> 
-              1 Box Batch Brown Rice (95g eq) <br/>+ 170g Fresh Chicken <br/>+ Home Dal (Solid bits only).
-            </div>
+      {/* Meals */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-gray-900 p-5 rounded-xl border border-gray-800">
+          <h4 className="font-bold text-white mb-2 pb-2 border-b border-gray-800">Meal 1: Breakfast</h4>
+          <div className="text-sm text-gray-300 space-y-2 mt-3">
+            <div className="flex justify-between"><span>Whole Eggs</span><span className="font-mono text-cyan-400 font-bold">4</span></div>
+            <div className="flex justify-between"><span>French Beans</span><span className="font-mono text-cyan-400 font-bold">1 Cup</span></div>
+            <div className="text-xs text-gray-500 mt-2 italic">Sautéed. Paired with morning collagen.</div>
           </div>
+        </div>
 
-          <div className="bg-gray-900 p-5 rounded-xl border border-gray-800">
-            <h4 className="font-bold text-blue-400 mb-2">Workout Window</h4>
-            <div className="text-sm text-gray-200 space-y-2 mt-5">
-              <div><span className="text-blue-300 font-bold">Pre:</span> 1 Banana + Creatine</div>
-              <div><span className="text-blue-300 font-bold">Post:</span> 1 Scoop Whey Protein (25g)</div>
+        <div className="bg-gray-900 p-5 rounded-xl border border-gray-800">
+          <h4 className="font-bold text-white mb-2 pb-2 border-b border-gray-800">Meal 2: Lunch</h4>
+          <div className="text-sm text-gray-300 space-y-2 mt-3">
+            <div className="flex justify-between"><span>Chicken (Sautéed)</span><span className="font-mono text-emerald-400 font-bold">~185g</span></div>
+            <div className="flex justify-between">
+              <span>Daawat Brown Rice</span>
+              <span className="font-mono text-emerald-400 font-bold">{cycleDay === 8 ? '2 Boxes' : '1 Box'}</span>
             </div>
+            <div className="text-xs text-gray-500 mt-2 italic">Chicken sautéed with salt/pepper. Paired with home Dal/Sabji.</div>
           </div>
+        </div>
 
-          <div className="bg-gray-900 p-5 rounded-xl border border-gray-800">
-            <h4 className="font-bold text-amber-400 mb-2">Meal 3: Dinner</h4>
-            <div className="text-xs text-gray-400 mb-3 bg-gray-800/50 p-2 rounded border border-gray-700/50">
-              <span className="text-white font-medium">Night Meds:</span> Magnesium, Fenofibrate, Rosuvastatin.
-            </div>
-            <div className="text-sm text-gray-200">
-              <span className="text-white font-bold block mb-1">Diet:</span> 
-              4 Quaker Oat Chicken Meatballs + Veggies.
-            </div>
+        <div className="bg-gray-900 p-5 rounded-xl border border-gray-800">
+          <h4 className="font-bold text-white mb-2 pb-2 border-b border-gray-800">Meal 3: Dinner</h4>
+          <div className="text-sm text-gray-300 space-y-2 mt-3">
+            <div className="flex justify-between"><span>Oat/Veggie Chicken Meatballs</span><span className="font-mono text-amber-400 font-bold">4 Balls</span></div>
+            <div className="flex justify-between"><span>Optional: Extra Veg on side</span><span className="font-mono text-amber-400 font-bold">1 Cup</span></div>
+            <div className="flex justify-between mt-4 border-t border-gray-800 pt-2"><span>Post-Workout Shake</span><span className="font-mono text-blue-400 font-bold">25g Whey</span></div>
           </div>
         </div>
       </div>
 
-      {cycleDay === 8 && (
-        <div className="bg-purple-900/20 rounded-2xl p-6 border border-purple-500/30 animate-pulse shadow-[0_0_30px_rgba(168,85,247,0.15)]">
-          <h3 className="text-2xl font-bold flex items-center gap-2 text-purple-400 mb-3"><Flame /> Day 8 Refeed Logic Active</h3>
-          <p className="text-gray-300 font-medium mb-2">Rescue the Thyroid (TSH 6.65). Do not restrict carbs today.</p>
-          <ul className="text-sm text-purple-200 space-y-2 ml-4 list-disc">
-            <li>Eat <strong>2 Bananas</strong> pre-workout instead of 1.</li>
-            <li>Eat <strong>2 boxes</strong> of batch brown rice at Lunch instead of 1.</li>
-          </ul>
+      {/* Recipe Book */}
+      <div className="bg-gray-800/40 rounded-2xl p-6 border border-gray-700/50 shadow-xl mt-8">
+        <h3 className="text-xl font-bold flex items-center gap-2 mb-6"><BookOpen className="text-blue-400"/> The Recipe Book</h3>
+        
+        <div className="space-y-6">
+          <div className="bg-gray-900 p-5 rounded-xl border border-gray-800">
+            <h4 className="font-bold text-lg text-gray-200 mb-3 text-amber-400">High-Protein Oat Meatballs (20-Ball Batch)</h4>
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="md:col-span-1">
+                <div className="text-xs text-gray-500 font-bold mb-2 uppercase tracking-wider">Ingredients</div>
+                <ul className="text-sm text-gray-300 space-y-1 font-mono">
+                  <li>• 1 kg Minced Chicken</li>
+                  <li>• 150g Powdered Oats</li>
+                  <li>• 3 Whole Eggs (Binder)</li>
+                  <li>• 2 Std Cups Veggies</li>
+                  <li>• 2 tbsp Ginger-Garlic</li>
+                  <li>• Spices (Pepper, Salt)</li>
+                </ul>
+              </div>
+              <div className="md:col-span-2">
+                <div className="text-xs text-gray-500 font-bold mb-2 uppercase tracking-wider">Instructions & Macros</div>
+                <p className="text-sm text-gray-300 leading-relaxed mb-3">
+                  <strong>Veggies:</strong> Use grated carrots, minced capsicum, or onions. If using Lauki (Bottle Gourd), squeeze out the excess water first! <br/><br/>
+                  Mix all ingredients thoroughly. Form into exactly <strong className="text-amber-400">20 equal-sized meatballs (~80g each)</strong>. <br/><br/>
+                  <strong>Convection Oven Method:</strong> Preheat to 200°C. Cook in <strong>two batches of 10</strong>. Place your lined tray <strong>ON THE WIRE STAND</strong> (not flat on the glass) to allow 360° airflow underneath. Bake for <strong>18-22 minutes total</strong>. Pull tray out at the 12-minute mark to flip them.
+                </p>
+                <div className="bg-gray-800/50 p-3 rounded-lg border border-gray-700/50">
+                  <span className="text-xs text-gray-400 uppercase tracking-widest font-bold block mb-1">Your Daily Portion: 4 Meatballs</span>
+                  <span className="text-sm text-white font-mono">~420 Kcal | 53g Protein | 24g Carbs | 6g Fat</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gray-900 p-5 rounded-xl border border-gray-800">
+            <h4 className="font-bold text-lg text-gray-200 mb-3 text-emerald-400">Daawat Brown Rice Protocol</h4>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700/50">
+                <div className="text-sm font-bold text-white mb-2">Standard Days (Days 1-7)</div>
+                <p className="text-sm text-gray-300 leading-relaxed">
+                  Measure exactly <strong className="text-emerald-400">285 grams (~1.5 cups)</strong> of dry Daawat brown rice. Boil until tender and drain. Divide the cooked batch equally into exactly <strong className="text-emerald-400">3 containers</strong>. Eat 1 container per day for lunch.
+                </p>
+              </div>
+              <div className="bg-purple-900/20 p-4 rounded-lg border border-purple-500/30">
+                <div className="text-sm font-bold text-purple-300 mb-2">Refeed Day (Day 8 Only)</div>
+                <p className="text-sm text-purple-200/80 leading-relaxed">
+                  Measure <strong className="text-purple-400">2 full cups</strong> of dry Daawat brown rice for the batch. Today, you will eat <strong className="text-purple-400">2 containers</strong> of this rice to replenish muscle glycogen and rescue the thyroid.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gray-900 p-5 rounded-xl border border-gray-800">
+            <h4 className="font-bold text-lg text-gray-200 mb-3 text-blue-400">Modular Swaps (Combat Diet Fatigue)</h4>
+            <div className="grid md:grid-cols-3 gap-4">
+              <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700/50">
+                <div className="text-sm font-bold text-white mb-2 border-b border-gray-700 pb-2">Lunch Swap: Zero-Oil Kheema</div>
+                <p className="text-xs text-gray-300 leading-relaxed mb-2">
+                  <strong>Replaces:</strong> Sautéed Chicken Breast.<br/>
+                  <strong>3-Day Batch Prep:</strong> Cook <strong className="text-blue-300">500g minced chicken</strong> in a pot with 2 diced tomatoes, 1 onion, garlic, and Indian spices. Do not add oil. Divide into 3 equal Tupperware boxes.
+                </p>
+                <div className="text-xs font-mono text-blue-400">Portion: 1 Box (~165g) + Daily Rice + Home Dal</div>
+              </div>
+
+              <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700/50">
+                <div className="text-sm font-bold text-white mb-2 border-b border-gray-700 pb-2">Dinner Swap: Convection Tikka</div>
+                <p className="text-xs text-gray-300 leading-relaxed mb-2">
+                  <strong>Replaces:</strong> Oat Meatballs.<br/>
+                  <strong>5-Day Batch Prep:</strong> Marinate <strong className="text-blue-300">1kg cubed chicken</strong> in 100g Hung Curd & Tikka Masala. Bake on wire stand at 200°C for 15-18 mins.<br/><br/>
+                  <strong className="text-red-400">MACRO FIX:</strong> Since you lose the oats/veggies from the meatballs, you MUST eat 1 Jowar Bhakri (or 30g oats) and 1 Cup Bottle Gourd on the side.
+                </p>
+                <div className="text-xs font-mono text-blue-400">Portion: 200g Tikka + 1 Bhakri + 1 Cup Veg</div>
+              </div>
+
+              <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700/50">
+                <div className="text-sm font-bold text-white mb-2 border-b border-gray-700 pb-2">Breakfast Swap: Protein Oat Bowl</div>
+                <p className="text-xs text-gray-300 leading-relaxed mb-2">
+                  <strong>Replaces:</strong> 4 Whole Eggs.<br/>
+                  <strong>Daily Prep:</strong> Boil <strong className="text-blue-300">40g raw oats</strong> in water until thick. Let it cool slightly, then stir in 1 scoop Whey Protein (never boil whey). Top with 15g crushed almonds/walnuts.<br/><br/>
+                  <strong className="text-red-400">MACRO FIX:</strong> Eat your 1 Cup French Beans on the side to match the fiber.
+                </p>
+                <div className="text-xs font-mono text-blue-400">Portion: 1 Bowl + 1 Cup Veggies</div>
+              </div>
+            </div>
+          </div>
+
         </div>
-      )}
+      </div>
     </div>
   );
 
@@ -521,13 +593,13 @@ export default function App() {
             </div>
             <div>
               <h1 className="font-bold text-lg tracking-tight leading-none text-white">Metabolic Command</h1>
-              <span className="text-[10px] font-bold text-cyan-400 tracking-widest uppercase">Endocrine Reset V2</span>
+              <span className="text-[10px] font-bold text-cyan-400 tracking-widest uppercase">Endocrine Reset V2.1.2</span>
             </div>
           </div>
           {user ? (
             <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full">
               <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
-              <span className="text-[10px] font-bold text-emerald-400 tracking-wider">SECURE DB LIVE</span>
+              <span className="text-[10px] font-bold text-emerald-400 tracking-wider">DB LIVE</span>
             </div>
           ) : (
             <div className="flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-full">
@@ -567,7 +639,6 @@ export default function App() {
         {activeTab === 'matrix' && renderMatrix()}
       </main>
 
-      {/* Basic Styles injected to maintain single file architecture */}
       <style dangerouslySetInnerHTML={{__html: `
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
