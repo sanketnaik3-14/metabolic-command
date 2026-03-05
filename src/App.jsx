@@ -25,36 +25,41 @@ const db = getFirestore(app);
 const appId = "metabolic-command-v2";
 
 // ==========================================
-// 2. ENDOCRINE PROTOCOL DATA
+// 2. ENDOCRINE PROTOCOL DATA (UPDATED)
 // ==========================================
 const WORKOUT_CYCLE = {
   1: { type: 'LIFT', title: 'Upper Body (Hypertrophy)', focus: 'Chest, Back, Shoulders, Arms', rules: 'Strict 2-minute rests. 2 RIR.', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30' },
-  2: { type: 'CARDIO', title: 'The Flush (Zone 2)', focus: 'Aerobic Base, Cortisol Flush', rules: '45-55 mins. HR: 138-150 bpm.', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30' },
-  3: { type: 'LIFT', title: 'Lower Body & Core', focus: 'Quads, Hams, Core Matrix', rules: 'Strict 2-minute rests. 3-1-1 Tempo.', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30' },
-  4: { type: 'CARDIO', title: 'Engine Builder (4x4)', focus: 'VO2 Max, Mitochondrial Density', rules: '4x4 Intervals. Push: 167-178. Rest: <138.', color: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/30' },
-  5: { type: 'LIFT', title: 'Upper Body (Hypertrophy)', focus: 'Chest, Back, Shoulders, Arms', rules: 'Strict 2-minute rests. 2 RIR.', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30' },
-  6: { type: 'CARDIO', title: 'The Flush (Zone 2)', focus: 'Aerobic Base, Cortisol Flush', rules: '45-55 mins. HR: 138-150 bpm.', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30' },
-  7: { type: 'LIFT', title: 'Lower Body & Core', focus: 'Quads, Hams, Core Matrix', rules: 'Strict 2-minute rests. 3-1-1 Tempo.', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30' },
-  8: { type: 'REST', title: 'Active Rest + Refeed', focus: 'Thyroid Rescue, Glycogen Reload', rules: '+150g Complex Carbs today. Zero lifting.', color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/30' },
+  2: { type: 'LIFT', title: 'Lower Body & Core', focus: 'Quads, Hams, Glutes, Calves', rules: 'Strict 2-minute rests. 3-1-1 Tempo.', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30' },
+  3: { type: 'CARDIO', title: 'The Flush (Zone 2)', focus: 'Aerobic Base, Cortisol Flush', rules: '45+ mins. HR: 120-135 bpm.', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30' },
+  4: { type: 'LIFT', title: 'Upper Body (Hypertrophy)', focus: 'Chest, Back, Shoulders, Arms', rules: 'Strict 2-minute rests. 2 RIR.', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30' },
+  5: { type: 'LIFT', title: 'Lower Body & Core', focus: 'Quads, Hams, Glutes, Calves', rules: 'Strict 2-minute rests. 3-1-1 Tempo.', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30' },
+  6: { type: 'CARDIO', title: 'Active Flush (Zone 2)', focus: 'Lactic Clearance for Legs', rules: '45+ mins. HR: 120-135 bpm.', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30' },
+  7: { type: 'CARDIO', title: 'Engine Builder (4x4)', focus: 'VO2 Max, Cardiac Pliability', rules: '4x4 Intervals. Push: 158-163. Rest: 3-4 mins.', color: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/30' },
+  8: { type: 'REST', title: 'Complete Rest & Refeed', focus: 'Thyroid Rescue, Glycogen Reload', rules: 'High Carbohydrate Refeed. Zero lifting.', color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/30' },
 };
 
 const EXERCISES = {
   'Upper Body (Hypertrophy)': [
-    { name: 'Flat Bench Press', sets: 4, reps: '6-8' },
+    { name: 'Flat Bench Press', sets: 2, reps: '6-8' },
+    { name: 'Incline Dumbbell/Machine Press (30°)', sets: 2, reps: '8-10' },
     { name: 'Lat Pulldowns', sets: 4, reps: '8-10' },
-    { name: 'Overhead Shoulder Press', sets: 3, reps: '8-10' },
     { name: 'Seated Cable Rows', sets: 3, reps: '10-12' },
+    { name: 'Overhead Shoulder Press', sets: 3, reps: '8-10' },
+    { name: 'Cable or Dumbbell Lateral Raises', sets: 3, reps: '12-15' },
+    { name: 'Face Pulls or Reverse Pec Deck', sets: 2, reps: '12-15' },
     { name: 'Bicep Curls', sets: 3, reps: '12-15' },
     { name: 'Tricep Pushdowns', sets: 3, reps: '12-15' }
   ],
   'Lower Body & Core': [
-    { name: 'Goblet Squats (3-1-1 Tempo)', sets: 4, reps: '8-10' },
-    { name: 'Romanian Deadlifts', sets: 4, reps: '10-12' },
+    { name: 'Leg Press or Bulgarian Split Squats', sets: 4, reps: '8-10' },
+    { name: 'Romanian Deadlifts (RDLs)', sets: 3, reps: '10-12' },
     { name: 'Leg Extensions', sets: 3, reps: '12-15' },
-    { name: 'Calf Raises', sets: 4, reps: '15-20' },
+    { name: 'Seated or Lying Leg Curls', sets: 2, reps: '12-15' },
+    { name: 'Seated Hip Abductions/Band Walks', sets: 2, reps: '15-20' },
+    { name: 'Calf Raises (Seated or Standing)', sets: 3, reps: '15-20' },
     { name: 'Cable Crunches', sets: 3, reps: '12-15' },
-    { name: 'Hanging Leg Raises', sets: 3, reps: '10-15' },
-    { name: 'RKC Plank (Max Tension)', sets: 3, reps: '30-45s' }
+    { name: 'Leg Raises', sets: 3, reps: '10-15' },
+    { name: 'Planks', sets: 3, reps: '45s' }
   ]
 };
 
@@ -109,12 +114,10 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState(() => localStorage.getItem('mc_activeTab') || 'dashboard');
   
-  // Database State
   const [cycleDay, setCycleDay] = useState(1);
   const [workoutLogs, setWorkoutLogs] = useState({});
   const [matrixLogs, setMatrixLogs] = useState([]);
   
-  // Local Form State
   const [morningRHR, setMorningRHR] = useState(() => localStorage.getItem('mc_morningRHR') || '');
   const [exerciseInputs, setExerciseInputs] = useState(() => {
     const saved = localStorage.getItem('mc_exerciseInputs');
@@ -126,9 +129,6 @@ export default function App() {
   useEffect(() => { localStorage.setItem('mc_morningRHR', morningRHR); }, [morningRHR]);
   useEffect(() => { localStorage.setItem('mc_exerciseInputs', JSON.stringify(exerciseInputs)); }, [exerciseInputs]);
 
-  // ----------------------------------------
-  // FIREBASE AUTH & REALTIME SYNC
-  // ----------------------------------------
   useEffect(() => {
     const initAuth = async () => {
       try {
@@ -163,9 +163,6 @@ export default function App() {
     return () => unsub();
   }, [user]);
 
-  // ----------------------------------------
-  // DATA SAVING HELPERS
-  // ----------------------------------------
   const saveToDb = async (payload) => {
     if (!user) return;
     try {
@@ -211,12 +208,9 @@ export default function App() {
     const rhr = parseInt(morningRHR);
     if (rhr <= 73) return { color: 'text-emerald-400', border: 'border-emerald-500/50', bg: 'bg-emerald-500/10', text: 'GREEN: CNS Recovered. Proceed normally.' };
     if (rhr <= 77) return { color: 'text-amber-400', border: 'border-amber-500/50', bg: 'bg-amber-500/10', text: 'YELLOW: Mild Fatigue. Drop weights by 10%. Stop 3 reps short of failure.' };
-    return { color: 'text-red-400', border: 'border-red-500/50', bg: 'bg-red-500/10', text: 'RED: System Overload. ABORT WORKOUT. Do 30m outdoor walk only.' };
+    return { color: 'text-red-400', border: 'border-red-500/50', bg: 'bg-red-500/10', text: 'RED: System Overload. ABORT WORKOUT. Do Zone 2 only.' };
   };
 
-  // ----------------------------------------
-  // VIEWS
-  // ----------------------------------------
   const renderDashboard = () => (
     <div className="space-y-6 animate-fadeIn">
       <div className="bg-gray-800/40 rounded-2xl p-6 border border-gray-700/50 shadow-xl">
@@ -347,22 +341,22 @@ export default function App() {
         {todayPlan.type === 'CARDIO' && (
           <div className="bg-gray-800/40 p-6 rounded-2xl border border-gray-700/50 shadow-xl space-y-6">
             <h3 className="text-xl font-bold flex items-center gap-2"><HeartPulse className={todayPlan.color}/> Cardiovascular Protocol</h3>
-            {cycleDay === 2 || cycleDay === 6 ? (
+            {cycleDay === 3 || cycleDay === 6 ? (
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="bg-gray-900 p-6 rounded-xl border border-emerald-500/20">
                   <div className="text-xs font-bold text-emerald-500 mb-2 tracking-widest">MAGENE TARGET ZONE</div>
-                  <div className="text-5xl font-mono font-bold text-white mb-2">138 - 150 <span className="text-xl text-gray-500 font-sans">bpm</span></div>
+                  <div className="text-5xl font-mono font-bold text-white mb-2">120 - 135 <span className="text-xl text-gray-500 font-sans">bpm</span></div>
                 </div>
               </div>
             ) : (
               <div className="space-y-4">
                 <div className="bg-gray-900 p-6 rounded-xl border border-orange-500/20">
                   <div className="text-xs font-bold text-orange-500 mb-2 tracking-widest">THE PUSH (4 MINUTES)</div>
-                  <div className="text-4xl font-mono font-bold text-white">167 - 178 <span className="text-xl text-gray-500 font-sans">bpm</span></div>
+                  <div className="text-4xl font-mono font-bold text-white">158 - 163 <span className="text-xl text-gray-500 font-sans">bpm</span></div>
                 </div>
                 <div className="bg-gray-900 p-6 rounded-xl border border-blue-500/20">
-                  <div className="text-xs font-bold text-blue-500 mb-2 tracking-widest">ACTIVE RECOVERY (3 MINUTES)</div>
-                  <div className="text-4xl font-mono font-bold text-white">&lt; 138 <span className="text-xl text-gray-500 font-sans">bpm</span></div>
+                  <div className="text-xs font-bold text-blue-500 mb-2 tracking-widest">ACTIVE RECOVERY (3-4 MINUTES)</div>
+                  <div className="text-4xl font-mono font-bold text-white">&lt; 130 <span className="text-xl text-gray-500 font-sans">bpm</span></div>
                 </div>
               </div>
             )}
@@ -381,7 +375,7 @@ export default function App() {
         {cycleDay === 8 ? (
           <span className="bg-purple-900/40 px-4 py-1.5 text-xs font-bold text-purple-300 border border-purple-500/50 rounded-full tracking-wider animate-pulse">DAY 8: HIGH CARB REFEED ACTIVE</span>
         ) : (
-          <span className="bg-gray-900 px-4 py-1.5 text-xs font-bold text-gray-300 border border-gray-700 rounded-full tracking-wider">DEFICIT: ~1,650 KCAL | 160g PRO</span>
+          <span className="bg-gray-900 px-4 py-1.5 text-xs font-bold text-gray-300 border border-gray-700 rounded-full tracking-wider">DEFICIT TARGET: 1,750 KCAL | 143g PRO | 186g CARB</span>
         )}
       </div>
 
@@ -396,11 +390,7 @@ export default function App() {
             </li>
             <li className="flex items-start gap-3 text-sm text-gray-200 bg-gray-900/50 p-2 rounded-lg border border-gray-800">
               <Pill className="text-cyan-500 shrink-0 mt-0.5" size={16}/> 
-              <div><strong className="text-white block">Supplements:</strong> Multivitamin, Fish Oil, Collagen (4g Carbs)</div>
-            </li>
-            <li className="flex items-start gap-3 text-sm text-gray-200 bg-gray-900/50 p-2 rounded-lg border border-gray-800">
-              <Activity className="text-amber-500 shrink-0 mt-0.5" size={16}/> 
-              <div><strong className="text-white block">Pre-Workout:</strong> 1 Banana + Creatine</div>
+              <div><strong className="text-white block">Supplements:</strong> Multivitamin, Fish Oil, Vit B12</div>
             </li>
           </ul>
         </div>
@@ -421,34 +411,40 @@ export default function App() {
       </div>
 
       {/* Meals */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-gray-900 p-5 rounded-xl border border-gray-800">
           <h4 className="font-bold text-white mb-2 pb-2 border-b border-gray-800">Meal 1: Breakfast</h4>
           <div className="text-sm text-gray-300 space-y-2 mt-3">
             <div className="flex justify-between"><span>Whole Eggs</span><span className="font-mono text-cyan-400 font-bold">4</span></div>
+            <div className="flex justify-between"><span>Dry Oats</span><span className="font-mono text-cyan-400 font-bold">40g</span></div>
+            <div className="flex justify-between"><span>Milk</span><span className="font-mono text-cyan-400 font-bold">100ml</span></div>
             <div className="flex justify-between"><span>French Beans</span><span className="font-mono text-cyan-400 font-bold">1 Cup</span></div>
-            <div className="text-xs text-gray-500 mt-2 italic">Sautéed. Paired with morning collagen.</div>
           </div>
         </div>
 
         <div className="bg-gray-900 p-5 rounded-xl border border-gray-800">
           <h4 className="font-bold text-white mb-2 pb-2 border-b border-gray-800">Meal 2: Lunch</h4>
           <div className="text-sm text-gray-300 space-y-2 mt-3">
-            <div className="flex justify-between"><span>Chicken (Sautéed)</span><span className="font-mono text-emerald-400 font-bold">~185g</span></div>
-            <div className="flex justify-between">
-              <span>Daawat Brown Rice</span>
-              <span className="font-mono text-emerald-400 font-bold">{cycleDay === 8 ? '2 Boxes' : '1 Box'}</span>
-            </div>
-            <div className="text-xs text-gray-500 mt-2 italic">Chicken sautéed with salt/pepper. Paired with home Dal/Sabji.</div>
+            <div className="flex justify-between"><span>Chicken Breast</span><span className="font-mono text-emerald-400 font-bold">160g</span></div>
+            <div className="flex justify-between"><span>Brown Rice (Dry)</span><span className="font-mono text-emerald-400 font-bold">70g</span></div>
+            <div className="text-xs text-gray-500 mt-2 italic">Paired with trace amounts of home Dal/Sabji.</div>
           </div>
         </div>
 
         <div className="bg-gray-900 p-5 rounded-xl border border-gray-800">
-          <h4 className="font-bold text-white mb-2 pb-2 border-b border-gray-800">Meal 3: Dinner</h4>
+          <h4 className="font-bold text-white mb-2 pb-2 border-b border-gray-800">Meal 3: The Shake</h4>
           <div className="text-sm text-gray-300 space-y-2 mt-3">
-            <div className="flex justify-between"><span>Oat/Veggie Chicken Meatballs</span><span className="font-mono text-amber-400 font-bold">4 Balls</span></div>
-            <div className="flex justify-between"><span>Optional: Extra Veg on side</span><span className="font-mono text-amber-400 font-bold">1 Cup</span></div>
-            <div className="flex justify-between mt-4 border-t border-gray-800 pt-2"><span>Post-Workout Shake</span><span className="font-mono text-blue-400 font-bold">25g Whey</span></div>
+            <div className="flex justify-between"><span>Whey Protein</span><span className="font-mono text-blue-400 font-bold">1 Scoop</span></div>
+            <div className="flex justify-between"><span>Brown Rice (Dry)</span><span className="font-mono text-blue-400 font-bold">70g</span></div>
+            <div className="text-xs text-gray-500 mt-2 italic">Alternatively, swap the 70g rice for 2 Jowar Bhakris.</div>
+          </div>
+        </div>
+        
+        <div className="bg-gray-900 p-5 rounded-xl border border-gray-800">
+          <h4 className="font-bold text-white mb-2 pb-2 border-b border-gray-800">Meal 4: Dinner</h4>
+          <div className="text-sm text-gray-300 space-y-2 mt-3">
+            <div className="flex justify-between"><span>Chicken Meatballs</span><span className="font-mono text-amber-400 font-bold">1/5 Batch</span></div>
+            <div className="text-xs text-gray-500 mt-2 italic">180g Chicken, 60g Oats, 50g Bottle Gourd, 60g Frozen Veg per serving.</div>
           </div>
         </div>
       </div>
@@ -459,86 +455,43 @@ export default function App() {
         
         <div className="space-y-6">
           <div className="bg-gray-900 p-5 rounded-xl border border-gray-800">
-            <h4 className="font-bold text-lg text-gray-200 mb-3 text-amber-400">High-Protein Oat Meatballs (20-Ball Batch)</h4>
+            <h4 className="font-bold text-lg text-gray-200 mb-3 text-amber-400">High-Protein Oat Meatballs (5-Day Batch)</h4>
             <div className="grid md:grid-cols-3 gap-6">
               <div className="md:col-span-1">
                 <div className="text-xs text-gray-500 font-bold mb-2 uppercase tracking-wider">Ingredients</div>
                 <ul className="text-sm text-gray-300 space-y-1 font-mono">
-                  <li>• 1 kg Minced Chicken</li>
-                  <li>• 150g Powdered Oats</li>
-                  <li>• 3 Whole Eggs (Binder)</li>
-                  <li>• 2 Std Cups Veggies</li>
-                  <li>• 2 tbsp Ginger-Garlic</li>
-                  <li>• Spices (Pepper, Salt)</li>
+                  <li>• 900g Minced Chicken</li>
+                  <li>• 300g Powdered Oats</li>
+                  <li>• 2 Whole Eggs (Binder)</li>
+                  <li>• 250g Bottle Gourd</li>
+                  <li>• 300g Frozen Veggies</li>
+                  <li>• 15ml Cooking Oil</li>
                 </ul>
               </div>
               <div className="md:col-span-2">
                 <div className="text-xs text-gray-500 font-bold mb-2 uppercase tracking-wider">Instructions & Macros</div>
                 <p className="text-sm text-gray-300 leading-relaxed mb-3">
-                  <strong>Veggies:</strong> Use grated carrots, minced capsicum, or onions. If using Lauki (Bottle Gourd), squeeze out the excess water first! <br/><br/>
-                  Mix all ingredients thoroughly. Form into exactly <strong className="text-amber-400">20 equal-sized meatballs (~80g each)</strong>. <br/><br/>
-                  <strong>Convection Oven Method:</strong> Preheat to 200°C. Cook in <strong>two batches of 10</strong>. Place your lined tray <strong>ON THE WIRE STAND</strong> (not flat on the glass) to allow 360° airflow underneath. Bake for <strong>18-22 minutes total</strong>. Pull tray out at the 12-minute mark to flip them.
+                  Mix all ingredients thoroughly. Form into equal portions. Bake at 200°C for 18-22 minutes total, flipping halfway. Keep the tray on the wire stand for airflow.
                 </p>
                 <div className="bg-gray-800/50 p-3 rounded-lg border border-gray-700/50">
-                  <span className="text-xs text-gray-400 uppercase tracking-widest font-bold block mb-1">Your Daily Portion: 4 Meatballs</span>
-                  <span className="text-sm text-white font-mono">~420 Kcal | 53g Protein | 24g Carbs | 6g Fat</span>
+                  <span className="text-xs text-gray-400 uppercase tracking-widest font-bold block mb-1">Your Daily Portion (1/5th Batch)</span>
+                  <span className="text-sm text-white font-mono">~50.7g Protein | ~47.5g Carbs | 15.3g Fat</span>
                 </div>
               </div>
             </div>
           </div>
 
           <div className="bg-gray-900 p-5 rounded-xl border border-gray-800">
-            <h4 className="font-bold text-lg text-gray-200 mb-3 text-emerald-400">Daawat Brown Rice Protocol</h4>
+            <h4 className="font-bold text-lg text-gray-200 mb-3 text-emerald-400">Brown Rice Daily Prep</h4>
             <div className="grid md:grid-cols-2 gap-4">
               <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700/50">
                 <div className="text-sm font-bold text-white mb-2">Standard Days (Days 1-7)</div>
                 <p className="text-sm text-gray-300 leading-relaxed">
-                  Measure exactly <strong className="text-emerald-400">285 grams (~1.5 cups)</strong> of dry Daawat brown rice. Boil until tender and drain. Divide the cooked batch equally into exactly <strong className="text-emerald-400">3 containers</strong>. Eat 1 container per day for lunch.
-                </p>
-              </div>
-              <div className="bg-purple-900/20 p-4 rounded-lg border border-purple-500/30">
-                <div className="text-sm font-bold text-purple-300 mb-2">Refeed Day (Day 8 Only)</div>
-                <p className="text-sm text-purple-200/80 leading-relaxed">
-                  Measure <strong className="text-purple-400">2 full cups</strong> of dry Daawat brown rice for the batch. Today, you will eat <strong className="text-purple-400">2 containers</strong> of this rice to replenish muscle glycogen and rescue the thyroid.
+                  Measure exactly <strong className="text-emerald-400">140 grams</strong> of dry brown rice daily. Cook and split into two equal 70g dry-equivalent portions (Meal 2 and Meal 3). This delivers exactly 100g of necessary carbohydrates.
                 </p>
               </div>
             </div>
           </div>
-
-          <div className="bg-gray-900 p-5 rounded-xl border border-gray-800">
-            <h4 className="font-bold text-lg text-gray-200 mb-3 text-blue-400">Modular Swaps (Combat Diet Fatigue)</h4>
-            <div className="grid md:grid-cols-3 gap-4">
-              <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700/50">
-                <div className="text-sm font-bold text-white mb-2 border-b border-gray-700 pb-2">Lunch Swap: Zero-Oil Kheema</div>
-                <p className="text-xs text-gray-300 leading-relaxed mb-2">
-                  <strong>Replaces:</strong> Sautéed Chicken Breast.<br/>
-                  <strong>3-Day Batch Prep:</strong> Cook <strong className="text-blue-300">500g minced chicken</strong> in a pot with 2 diced tomatoes, 1 onion, garlic, and Indian spices. Do not add oil. Divide into 3 equal Tupperware boxes.
-                </p>
-                <div className="text-xs font-mono text-blue-400">Portion: 1 Box (~165g) + Daily Rice + Home Dal</div>
-              </div>
-
-              <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700/50">
-                <div className="text-sm font-bold text-white mb-2 border-b border-gray-700 pb-2">Dinner Swap: Convection Tikka</div>
-                <p className="text-xs text-gray-300 leading-relaxed mb-2">
-                  <strong>Replaces:</strong> Oat Meatballs.<br/>
-                  <strong>5-Day Batch Prep:</strong> Marinate <strong className="text-blue-300">1kg cubed chicken</strong> in 100g Hung Curd & Tikka Masala. Bake on wire stand at 200°C for 15-18 mins.<br/><br/>
-                  <strong className="text-red-400">MACRO FIX:</strong> Since you lose the oats/veggies from the meatballs, you MUST eat 1 Jowar Bhakri (or 30g oats) and 1 Cup Bottle Gourd on the side.
-                </p>
-                <div className="text-xs font-mono text-blue-400">Portion: 200g Tikka + 1 Bhakri + 1 Cup Veg</div>
-              </div>
-
-              <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700/50">
-                <div className="text-sm font-bold text-white mb-2 border-b border-gray-700 pb-2">Breakfast Swap: Protein Oat Bowl</div>
-                <p className="text-xs text-gray-300 leading-relaxed mb-2">
-                  <strong>Replaces:</strong> 4 Whole Eggs.<br/>
-                  <strong>Daily Prep:</strong> Boil <strong className="text-blue-300">40g raw oats</strong> in water until thick. Let it cool slightly, then stir in 1 scoop Whey Protein (never boil whey). Top with 15g crushed almonds/walnuts.<br/><br/>
-                  <strong className="text-red-400">MACRO FIX:</strong> Eat your 1 Cup French Beans on the side to match the fiber.
-                </p>
-                <div className="text-xs font-mono text-blue-400">Portion: 1 Bowl + 1 Cup Veggies</div>
-              </div>
-            </div>
-          </div>
-
         </div>
       </div>
     </div>
@@ -593,7 +546,7 @@ export default function App() {
             </div>
             <div>
               <h1 className="font-bold text-lg tracking-tight leading-none text-white">Metabolic Command</h1>
-              <span className="text-[10px] font-bold text-cyan-400 tracking-widest uppercase">Endocrine Reset V2.1.2</span>
+              <span className="text-[10px] font-bold text-cyan-400 tracking-widest uppercase">Endocrine Reset V2.2.0</span>
             </div>
           </div>
           {user ? (
