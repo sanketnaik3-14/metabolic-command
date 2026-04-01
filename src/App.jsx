@@ -5,7 +5,7 @@ import { getFirestore, doc, setDoc, onSnapshot } from 'firebase/firestore';
 import { 
   Activity, Flame, Clock, Dumbbell, Utensils, 
   Scale, Timer, History, Save, HeartPulse, ChevronRight, 
-  CheckCircle2, Pill, BookOpen, Coffee, Moon
+  CheckCircle2, Pill, BookOpen, Coffee, Moon, Route, Shield
 } from 'lucide-react';
 
 // ==========================================
@@ -25,48 +25,55 @@ const db = getFirestore(app);
 const appId = "metabolic-command-v2";
 
 // ==========================================
-// 2. ENDOCRINE PROTOCOL DATA (UPDATED)
+// 2. ENDOCRINE PROTOCOL DATA (V3: DUP + C25K)
 // ==========================================
 const WORKOUT_CYCLE = {
-  1: { type: 'LIFT', title: 'Upper Body (Hypertrophy)', focus: 'Chest, Back, Shoulders, Arms', rules: 'Strict 2-minute rests. 2 RIR.', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30' },
-  2: { type: 'LIFT', title: 'Lower Body & Core', focus: 'Quads, Hams, Glutes, Calves', rules: 'Strict 2-minute rests. 3-1-1 Tempo.', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30' },
-  3: { type: 'CARDIO', title: 'The Flush (Zone 2)', focus: 'Aerobic Base, Cortisol Flush', rules: '45+ mins. HR: 120-135 bpm.', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30' },
-  4: { type: 'LIFT', title: 'Upper Body (Hypertrophy)', focus: 'Chest, Back, Shoulders, Arms', rules: 'Strict 2-minute rests. 2 RIR.', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30' },
-  5: { type: 'LIFT', title: 'Lower Body & Core', focus: 'Quads, Hams, Glutes, Calves', rules: 'Strict 2-minute rests. 3-1-1 Tempo.', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30' },
-  6: { type: 'CARDIO', title: 'Active Flush (Zone 2)', focus: 'Lactic Clearance for Legs', rules: '45+ mins. HR: 120-135 bpm.', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30' },
-  7: { type: 'CARDIO', title: 'Engine Builder (4x4)', focus: 'VO2 Max, Cardiac Pliability', rules: '4x4 Intervals. Push: 158-163. Rest: 3-4 mins.', color: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/30' },
-  8: { type: 'REST', title: 'Complete Rest & Refeed', focus: 'Thyroid Rescue, Glycogen Reload', rules: 'High Carbohydrate Refeed. Zero lifting.', color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/30' },
+  1: { type: 'LIFT', title: 'Upper Body (Heavy)', focus: 'Strength & CNS Tension', rules: 'Strict 2-minute rests. 1-2 RIR.', color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/30' },
+  2: { type: 'LIFT', title: 'Lower Body (Heavy)', focus: 'Mechanical Load', rules: 'Strict 2-minute rests. 1-2 RIR.', color: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/30' },
+  3: { type: 'CARDIO', title: 'C25K Run', focus: 'Aerobic Base, Fat Oxidation', rules: 'Treadmill C25K. Pre-workout Banana.', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30' },
+  4: { type: 'REST', title: 'Active Recovery', focus: 'Tendon Repair', rules: '15-min walk max. Light stretching.', color: 'text-gray-400', bg: 'bg-gray-500/10', border: 'border-gray-500/30' },
+  5: { type: 'LIFT', title: 'Upper Body (Light)', focus: 'Hypertrophy & Pump', rules: '90s rests. Target ~60% of Heavy load.', color: 'text-cyan-400', bg: 'bg-cyan-500/10', border: 'border-cyan-500/30' },
+  6: { type: 'LIFT', title: 'Lower Body (Light)', focus: 'Capillary Angiogenesis', rules: '90s rests. Target ~60% of Heavy load.', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30' },
+  7: { type: 'CARDIO', title: 'C25K Run', focus: 'Aerobic Base, Fat Oxidation', rules: 'Treadmill C25K. Empty glycogen tank.', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30' },
+  8: { type: 'REST', title: 'Complete Rest', focus: 'CNS & Systemic Recovery', rules: 'Zero impact. High Carb Refeed.', color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/30' },
 };
 
 const EXERCISES = {
-  'Upper Body (Hypertrophy)': [
-    { name: 'Flat Bench Press', sets: 2, reps: '6-8' },
-    { name: 'Incline Dumbbell/Machine Press (30°)', sets: 2, reps: '8-10' },
-    { name: 'Lat Pulldowns', sets: 4, reps: '8-10' },
-    { name: 'Seated Cable Rows', sets: 3, reps: '10-12' },
-    { name: 'Overhead Shoulder Press', sets: 3, reps: '8-10' },
-    { name: 'Cable or Dumbbell Lateral Raises', sets: 3, reps: '12-15' },
-    { name: 'Face Pulls or Reverse Pec Deck', sets: 2, reps: '12-15' },
+  'Upper Body (Heavy)': [
+    { name: 'Machine Shoulder Press', sets: 3, reps: '6-8' },
+    { name: 'Incline Dumbbell Press (30°)', sets: 3, reps: '6-8' },
+    { name: 'Lat Pulldowns', sets: 4, reps: '6-8' },
+    { name: 'Seated Cable Rows', sets: 3, reps: '8-10' }
+  ],
+  'Lower Body (Heavy)': [
+    { name: 'Bulgarian Split Squats (Weighted)', sets: 4, reps: '8-10' },
+    { name: 'Romanian Deadlifts (RDLs)', sets: 4, reps: '10-12' },
+    { name: 'Leg Extensions', sets: 3, reps: '10-12' },
+    { name: 'Seated or Lying Leg Curls', sets: 3, reps: '10-12' },
+    { name: 'Calf Raises (Seated or Standing)', sets: 3, reps: '15-20' },
+    { name: 'Cable Crunches', sets: 3, reps: '12-15' }
+  ],
+  'Upper Body (Light)': [
+    { name: 'Flat Dumbbell Press or Pushups', sets: 3, reps: '12-15' },
+    { name: 'Cable or Dumbbell Lateral Raises', sets: 4, reps: '15-20' },
+    { name: 'Straight-Arm Pulldown / Face Pull', sets: 3, reps: '15-20' },
     { name: 'Bicep Curls', sets: 3, reps: '12-15' },
     { name: 'Tricep Pushdowns', sets: 3, reps: '12-15' }
   ],
-  'Lower Body & Core': [
-    { name: 'Leg Press or Bulgarian Split Squats', sets: 4, reps: '8-10' },
-    { name: 'Romanian Deadlifts (RDLs)', sets: 3, reps: '10-12' },
-    { name: 'Leg Extensions', sets: 3, reps: '12-15' },
-    { name: 'Seated or Lying Leg Curls', sets: 2, reps: '12-15' },
-    { name: 'Seated Hip Abductions/Band Walks', sets: 2, reps: '15-20' },
-    { name: 'Calf Raises (Seated or Standing)', sets: 3, reps: '15-20' },
-    { name: 'Cable Crunches', sets: 3, reps: '12-15' },
-    { name: 'Leg Raises', sets: 3, reps: '10-15' },
-    { name: 'Planks', sets: 3, reps: '45s' }
+  'Lower Body (Light)': [
+    { name: 'Bulgarian Split Squats (Bodyweight)', sets: 3, reps: '15' },
+    { name: 'Romanian Deadlifts (Light)', sets: 3, reps: '15-20' },
+    { name: 'Leg Extensions (Hard Squeeze)', sets: 3, reps: '15-20' },
+    { name: 'Seated or Lying Leg Curls', sets: 3, reps: '15-20' },
+    { name: 'Lateral Band Walks', sets: 2, reps: '15-20' },
+    { name: 'Leg Raises & Planks', sets: 3, reps: 'Failure' }
   ]
 };
 
 // ==========================================
 // 3. UI COMPONENTS
 // ==========================================
-const RestTimer = () => {
+const RestTimer = ({ duration = 120 }) => {
   const [timeLeft, setTimeLeft] = useState(0);
 
   useEffect(() => {
@@ -89,12 +96,13 @@ const RestTimer = () => {
   }, []);
 
   const startTimer = () => {
-    const endTime = Date.now() + 120 * 1000;
+    const endTime = Date.now() + duration * 1000;
     localStorage.setItem('mc_restEndTime', endTime.toString());
-    setTimeLeft(120);
+    setTimeLeft(duration);
   };
 
   const formatTime = (secs) => `${Math.floor(secs / 60)}:${(secs % 60).toString().padStart(2, '0')}`;
+  const buttonText = timeLeft > 0 ? formatTime(timeLeft) : `START ${duration === 120 ? '2 MIN' : '90s'} REST`;
 
   return (
     <button 
@@ -102,7 +110,7 @@ const RestTimer = () => {
       className={`flex items-center gap-1 px-3 py-1.5 rounded text-xs font-bold transition-colors shadow-sm ${timeLeft > 0 ? 'bg-amber-500 text-gray-900 border border-amber-400 animate-pulse' : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white border border-gray-700'}`}
     >
       <Timer size={14} />
-      {timeLeft > 0 ? formatTime(timeLeft) : 'START 2 MIN REST'}
+      {buttonText}
     </button>
   );
 };
@@ -261,14 +269,35 @@ export default function App() {
   const renderProtocol = () => {
     const todayPlan = WORKOUT_CYCLE[cycleDay];
     const today = new Date().toISOString().split('T')[0];
+    const isLightDay = todayPlan.title.includes('Light');
     
+    // Auto-calculate 60% based on Heavy History
+    const getMaxHeavyWeight = (exerciseName) => {
+      // Clean the name to find the base exercise (e.g., strips out "(Light)")
+      const baseName = exerciseName.replace(/\s*\((Heavy|Light|.*)\)/ig, '').trim();
+      let maxWt = 0;
+      
+      Object.entries(workoutLogs).forEach(([logName, history]) => {
+        // Find logs that match the base name but are NOT the light variations
+        if (logName.includes(baseName) && !logName.includes('Light')) {
+          Object.values(history).forEach(daySets => {
+            daySets.forEach(set => {
+              const wt = parseFloat(set.weight);
+              if (wt > maxWt) maxWt = wt;
+            });
+          });
+        }
+      });
+      return maxWt;
+    };
+
     return (
       <div className="space-y-6 animate-fadeIn">
         <div className={`p-6 rounded-2xl border ${todayPlan.bg} ${todayPlan.border} shadow-xl relative overflow-hidden`}>
           <div className="relative z-10">
             <h2 className={`text-3xl font-bold ${todayPlan.color} mb-2`}>Day {cycleDay}: {todayPlan.title}</h2>
             <p className="text-gray-300 font-medium mb-4">{todayPlan.rules}</p>
-            {todayPlan.type === 'LIFT' && <RestTimer />}
+            {todayPlan.type === 'LIFT' && <RestTimer duration={isLightDay ? 90 : 120} />}
           </div>
         </div>
 
@@ -279,11 +308,20 @@ export default function App() {
               const todaySets = exHistory[today] || [];
               
               const pastDates = Object.keys(exHistory).filter(d => d !== today).sort((a,b) => new Date(b) - new Date(a));
-              let bestPrevSet = null;
+              let lastSessionSets = [];
               if (pastDates.length > 0) {
-                const lastDate = pastDates[0];
-                bestPrevSet = exHistory[lastDate].reduce((best, current) => Number(current.weight) > Number(best.weight) ? current : best, exHistory[lastDate][0]);
-                bestPrevSet.date = lastDate;
+                lastSessionSets = exHistory[pastDates[0]] || [];
+              }
+
+              let lightSuggestion = null;
+              if (isLightDay) {
+                const maxWt = getMaxHeavyWeight(ex.name);
+                if (maxWt > 0) {
+                  const suggested = Math.round((maxWt * 0.6) * 2) / 2; // Rounds to nearest 0.5kg
+                  lightSuggestion = `💡 60% Target: ~${suggested} kg (Based on ${maxWt}kg)`;
+                } else {
+                  lightSuggestion = `💡 Target: ~60% of Heavy Weight`;
+                }
               }
 
               return (
@@ -291,28 +329,28 @@ export default function App() {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 border-b border-gray-700/50 pb-4">
                   <div>
                     <h4 className="font-bold text-xl text-gray-100">{ex.name}</h4>
-                    <div className="text-sm text-gray-400 mt-1 font-medium tracking-wide">
-                      Target: {ex.sets} Sets × {ex.reps} Reps
+                    <div className="flex flex-wrap items-center gap-3 mt-2">
+                      <div className="text-sm text-gray-400 font-medium tracking-wide">
+                        Target: {ex.sets} Sets × {ex.reps} Reps
+                      </div>
+                      {lightSuggestion && (
+                        <div className="text-xs font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-1 rounded">
+                          {lightSuggestion}
+                        </div>
+                      )}
                     </div>
                   </div>
-                  {bestPrevSet && (
-                    <div className="bg-gray-900 px-4 py-2 rounded-lg border border-gray-800 text-right">
-                      <div className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1 flex items-center gap-1 justify-end"><History size={12}/> Last Session Best</div>
-                      <div className="text-sm text-gray-300 font-mono">
-                        <span className="text-cyan-400 font-bold text-base">{bestPrevSet.weight} kg</span> × {bestPrevSet.reps} reps
-                      </div>
-                    </div>
-                  )}
                 </div>
                 
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {[...Array(ex.sets)].map((_, setIdx) => {
                     const savedSet = todaySets[setIdx];
                     const currentInput = exerciseInputs[`${ex.name}-${setIdx}`] || { weight: '', reps: '' };
+                    const prevSet = lastSessionSets[setIdx]; // Fetch the exact set from the last session
                     
                     return (
-                      <div key={setIdx} className={`flex items-center gap-3 p-2 rounded-lg border ${savedSet ? 'bg-emerald-900/10 border-emerald-500/20' : 'bg-gray-900 border-gray-800'}`}>
-                        <div className="w-14 text-xs font-bold text-gray-500 uppercase tracking-widest pl-2">Set {setIdx + 1}</div>
+                      <div key={setIdx} className={`flex gap-3 p-3 rounded-lg border ${savedSet ? 'bg-emerald-900/10 border-emerald-500/20 items-center' : 'bg-gray-900 border-gray-800 items-end'}`}>
+                        <div className={`w-14 text-xs font-bold text-gray-500 uppercase tracking-widest pl-1 ${savedSet ? '' : 'mb-2'}`}>Set {setIdx + 1}</div>
                         
                         {savedSet ? (
                           <>
@@ -324,9 +362,19 @@ export default function App() {
                           </>
                         ) : (
                           <>
-                            <input type="number" placeholder="Kg" value={currentInput.weight} onChange={e=>handleExerciseInput(ex.name, setIdx, 'weight', e.target.value)} className="w-20 sm:w-24 bg-gray-800 text-sm px-3 py-1.5 rounded border border-gray-700 text-white outline-none focus:border-blue-500" />
-                            <input type="number" placeholder="Reps" value={currentInput.reps} onChange={e=>handleExerciseInput(ex.name, setIdx, 'reps', e.target.value)} className="w-20 sm:w-24 bg-gray-800 text-sm px-3 py-1.5 rounded border border-gray-700 text-white outline-none focus:border-blue-500" />
-                            <button onClick={() => logSetToDb(ex.name, setIdx, currentInput.weight, currentInput.reps)} className="ml-auto bg-blue-600/20 text-blue-400 p-1.5 sm:px-3 sm:py-1.5 rounded hover:bg-blue-600/40 border border-blue-500/30 font-bold text-xs sm:text-sm transition-colors">SAVE</button>
+                            <div className="flex-1 flex flex-col gap-1">
+                               <span className="text-[10px] font-bold text-cyan-500/80 text-center tracking-wider h-3">
+                                 {prevSet ? `PREV: ${prevSet.weight}` : ''}
+                               </span>
+                               <input type="number" placeholder="Kg" value={currentInput.weight} onChange={e=>handleExerciseInput(ex.name, setIdx, 'weight', e.target.value)} className="w-full bg-gray-800 text-sm px-2 py-1.5 rounded border border-gray-700 text-white outline-none focus:border-cyan-500 text-center" />
+                            </div>
+                            <div className="flex-1 flex flex-col gap-1">
+                               <span className="text-[10px] font-bold text-cyan-500/80 text-center tracking-wider h-3">
+                                 {prevSet ? `PREV: ${prevSet.reps}` : ''}
+                               </span>
+                               <input type="number" placeholder="Reps" value={currentInput.reps} onChange={e=>handleExerciseInput(ex.name, setIdx, 'reps', e.target.value)} className="w-full bg-gray-800 text-sm px-2 py-1.5 rounded border border-gray-700 text-white outline-none focus:border-cyan-500 text-center" />
+                            </div>
+                            <button onClick={() => logSetToDb(ex.name, setIdx, currentInput.weight, currentInput.reps)} className="ml-auto bg-cyan-600/20 text-cyan-400 px-3 py-1.5 rounded hover:bg-cyan-600/40 border border-cyan-500/30 font-bold text-xs sm:text-sm transition-colors mb-0.5">SAVE</button>
                           </>
                         )}
                       </div>
@@ -340,26 +388,20 @@ export default function App() {
 
         {todayPlan.type === 'CARDIO' && (
           <div className="bg-gray-800/40 p-6 rounded-2xl border border-gray-700/50 shadow-xl space-y-6">
-            <h3 className="text-xl font-bold flex items-center gap-2"><HeartPulse className={todayPlan.color}/> Cardiovascular Protocol</h3>
-            {cycleDay === 3 || cycleDay === 6 ? (
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="bg-gray-900 p-6 rounded-xl border border-emerald-500/20">
-                  <div className="text-xs font-bold text-emerald-500 mb-2 tracking-widest">MAGENE TARGET ZONE</div>
-                  <div className="text-5xl font-mono font-bold text-white mb-2">120 - 135 <span className="text-xl text-gray-500 font-sans">bpm</span></div>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="bg-gray-900 p-6 rounded-xl border border-orange-500/20">
-                  <div className="text-xs font-bold text-orange-500 mb-2 tracking-widest">THE PUSH (4 MINUTES)</div>
-                  <div className="text-4xl font-mono font-bold text-white">158 - 163 <span className="text-xl text-gray-500 font-sans">bpm</span></div>
-                </div>
-                <div className="bg-gray-900 p-6 rounded-xl border border-blue-500/20">
-                  <div className="text-xs font-bold text-blue-500 mb-2 tracking-widest">ACTIVE RECOVERY (3-4 MINUTES)</div>
-                  <div className="text-4xl font-mono font-bold text-white">&lt; 130 <span className="text-xl text-gray-500 font-sans">bpm</span></div>
-                </div>
-              </div>
-            )}
+            <h3 className="text-xl font-bold flex items-center gap-2"><Route className={todayPlan.color}/> C25K Protocol Active</h3>
+            <div className="bg-gray-900 p-6 rounded-xl border border-emerald-500/20">
+              <div className="text-xs font-bold text-emerald-500 mb-2 tracking-widest">CURRENT OBJECTIVE</div>
+              <div className="text-2xl font-bold text-white mb-2">Follow C25K App Cues</div>
+              <p className="text-gray-400 text-sm leading-relaxed">Boot up the C25K application. Keep the treadmill at a comfortable incline (1-2%). Focus on breathing and form during the running intervals. Enjoy the active fat oxidation.</p>
+            </div>
+          </div>
+        )}
+
+        {todayPlan.type === 'REST' && (
+          <div className="bg-gray-800/40 p-10 rounded-2xl border border-gray-700/50 shadow-xl text-center space-y-4">
+            <Shield className={`mx-auto w-16 h-16 ${todayPlan.color} opacity-80`} />
+            <h3 className="text-2xl font-bold text-white">Recovery Mode Engaged</h3>
+            <p className="text-gray-400 max-w-md mx-auto">Zero mechanical impact today. Let your central nervous system, joints, and tendons fully recover. Eat your carbs.</p>
           </div>
         )}
       </div>
@@ -546,7 +588,7 @@ export default function App() {
             </div>
             <div>
               <h1 className="font-bold text-lg tracking-tight leading-none text-white">Metabolic Command</h1>
-              <span className="text-[10px] font-bold text-cyan-400 tracking-widest uppercase">Endocrine Reset V2.2.0</span>
+              <span className="text-[10px] font-bold text-cyan-400 tracking-widest uppercase">DUP + C25K Protocol V3.0.0</span>
             </div>
           </div>
           {user ? (
