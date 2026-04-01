@@ -263,7 +263,10 @@ export default function App() {
             return (
               <div 
                 key={day}
-                onClick={() => saveToDb({ cycleDay: parseInt(day) })}
+                onClick={() => {
+                  saveToDb({ cycleDay: parseInt(day) });
+                  setActiveTab('workout');
+                }}
                 className={`p-4 rounded-xl border cursor-pointer transition-all ${isActive ? `${data.bg} ${data.border} shadow-[0_0_15px_rgba(0,0,0,0.3)] scale-[1.02]` : 'bg-gray-900 border-gray-800 hover:border-gray-700'}`}
               >
                 <div className="flex justify-between items-center mb-1">
