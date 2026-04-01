@@ -41,9 +41,10 @@ const WORKOUT_CYCLE = {
 const EXERCISES = {
   'Upper Body (Heavy)': [
     { name: 'Incline Chest Press', sets: 3, reps: '6-8' },
-    { name: 'Lat Pulldown', sets: 4, reps: '6-8' },
+    { name: 'Lat Pulldown', sets: 3, reps: '6-8' },
     { name: 'Seated Cable Row', sets: 3, reps: '8-10' },
-    { name: 'Shoulder Press', sets: 2, reps: '8-10' },
+    { name: 'Shoulder Press', sets: 3, reps: '8-10' },
+    { name: 'Lateral Raise', sets: 3, reps: '10-12' },
     { name: 'Face Pull / Reverse Fly', sets: 2, reps: '10-12' },
     { name: 'Tricep Pushdown', sets: 3, reps: '10-12' },
     { name: 'Bicep Curl', sets: 2, reps: '10-12' }
@@ -61,9 +62,10 @@ const EXERCISES = {
   ],
   'Upper Body (Light)': [
     { name: 'Incline Chest Press (Light)', sets: 3, reps: '12-15' },
-    { name: 'Lat Pulldown (Light)', sets: 4, reps: '12-15' },
+    { name: 'Lat Pulldown (Light)', sets: 3, reps: '12-15' },
     { name: 'Seated Cable Row (Light)', sets: 3, reps: '15-20' },
-    { name: 'Shoulder Press (Light)', sets: 2, reps: '12-15' },
+    { name: 'Shoulder Press (Light)', sets: 3, reps: '12-15' },
+    { name: 'Lateral Raise (Light)', sets: 3, reps: '15-20' },
     { name: 'Face Pull / Reverse Fly (Light)', sets: 2, reps: '15-20' },
     { name: 'Tricep Pushdown (Light)', sets: 3, reps: '15-20' },
     { name: 'Bicep Curl (Light)', sets: 2, reps: '15-20' }
