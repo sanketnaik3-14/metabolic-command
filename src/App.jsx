@@ -5,7 +5,7 @@ import { getFirestore, doc, setDoc, onSnapshot } from 'firebase/firestore';
 import { 
   Activity, Flame, Clock, Dumbbell, Utensils, 
   Scale, Timer, History, Save, HeartPulse, ChevronRight, 
-  CheckCircle2, Pill, BookOpen, Coffee, Moon, Route, Shield
+  CheckCircle2, Pill, BookOpen, Coffee, Moon, Map, Shield
 } from 'lucide-react';
 
 // ==========================================
@@ -30,43 +30,54 @@ const appId = "metabolic-command-v2";
 const WORKOUT_CYCLE = {
   1: { type: 'LIFT', title: 'Upper Body (Heavy)', focus: 'Strength & CNS Tension', rules: 'Strict 2-minute rests. 1-2 RIR.', color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/30' },
   2: { type: 'LIFT', title: 'Lower Body (Heavy)', focus: 'Mechanical Load', rules: 'Strict 2-minute rests. 1-2 RIR.', color: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/30' },
-  3: { type: 'CARDIO', title: 'C25K Run', focus: 'Aerobic Base, Fat Oxidation', rules: 'Treadmill C25K. Pre-workout Banana.', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30' },
+  3: { type: 'CARDIO', title: 'C25K Run', focus: 'Aerobic Base, Fat Oxidation', rules: 'Treadmill C25K. Pre-workout Banana.', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', icon: Map },
   4: { type: 'REST', title: 'Active Recovery', focus: 'Tendon Repair', rules: '15-min walk max. Light stretching.', color: 'text-gray-400', bg: 'bg-gray-500/10', border: 'border-gray-500/30' },
   5: { type: 'LIFT', title: 'Upper Body (Light)', focus: 'Hypertrophy & Pump', rules: '90s rests. Target ~60% of Heavy load.', color: 'text-cyan-400', bg: 'bg-cyan-500/10', border: 'border-cyan-500/30' },
   6: { type: 'LIFT', title: 'Lower Body (Light)', focus: 'Capillary Angiogenesis', rules: '90s rests. Target ~60% of Heavy load.', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30' },
-  7: { type: 'CARDIO', title: 'C25K Run', focus: 'Aerobic Base, Fat Oxidation', rules: 'Treadmill C25K. Empty glycogen tank.', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30' },
+  7: { type: 'CARDIO', title: 'C25K Run', focus: 'Aerobic Base, Fat Oxidation', rules: 'Treadmill C25K. Empty glycogen tank.', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', icon: Map },
   8: { type: 'REST', title: 'Complete Rest', focus: 'CNS & Systemic Recovery', rules: 'Zero impact. High Carb Refeed.', color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/30' },
 };
 
 const EXERCISES = {
   'Upper Body (Heavy)': [
-    { name: 'Machine Shoulder Press', sets: 3, reps: '6-8' },
-    { name: 'Incline Dumbbell Press (30°)', sets: 3, reps: '6-8' },
-    { name: 'Lat Pulldowns', sets: 4, reps: '6-8' },
-    { name: 'Seated Cable Rows', sets: 3, reps: '8-10' }
+    { name: 'Incline Chest Press', sets: 3, reps: '6-8' },
+    { name: 'Lat Pulldown', sets: 4, reps: '6-8' },
+    { name: 'Seated Cable Row', sets: 3, reps: '8-10' },
+    { name: 'Shoulder Press', sets: 2, reps: '8-10' },
+    { name: 'Face Pull / Reverse Fly', sets: 2, reps: '10-12' },
+    { name: 'Tricep Pushdown', sets: 3, reps: '10-12' },
+    { name: 'Bicep Curl', sets: 2, reps: '10-12' }
   ],
   'Lower Body (Heavy)': [
-    { name: 'Bulgarian Split Squats (Weighted)', sets: 4, reps: '8-10' },
-    { name: 'Romanian Deadlifts (RDLs)', sets: 4, reps: '10-12' },
-    { name: 'Leg Extensions', sets: 3, reps: '10-12' },
-    { name: 'Seated or Lying Leg Curls', sets: 3, reps: '10-12' },
-    { name: 'Calf Raises (Seated or Standing)', sets: 3, reps: '15-20' },
-    { name: 'Cable Crunches', sets: 3, reps: '12-15' }
+    { name: 'Bulgarian Split Squat', sets: 4, reps: '8-10' },
+    { name: 'RDL', sets: 3, reps: '8-10' },
+    { name: 'Leg Extension', sets: 3, reps: '10-12' },
+    { name: 'Hamstring Curl', sets: 2, reps: '10-12' },
+    { name: 'Lateral Band Walk', sets: 2, reps: '15' },
+    { name: 'Calves', sets: 3, reps: '12-15' },
+    { name: 'Machine Abs', sets: 3, reps: '12-15' },
+    { name: 'Knee Raises', sets: 3, reps: '15' },
+    { name: 'Plank (Seconds)', sets: 3, reps: '45s' }
   ],
   'Upper Body (Light)': [
-    { name: 'Flat Dumbbell Press or Pushups', sets: 3, reps: '12-15' },
-    { name: 'Cable or Dumbbell Lateral Raises', sets: 4, reps: '15-20' },
-    { name: 'Straight-Arm Pulldown / Face Pull', sets: 3, reps: '15-20' },
-    { name: 'Bicep Curls', sets: 3, reps: '12-15' },
-    { name: 'Tricep Pushdowns', sets: 3, reps: '12-15' }
+    { name: 'Incline Chest Press (Light)', sets: 3, reps: '12-15' },
+    { name: 'Lat Pulldown (Light)', sets: 4, reps: '12-15' },
+    { name: 'Seated Cable Row (Light)', sets: 3, reps: '15-20' },
+    { name: 'Shoulder Press (Light)', sets: 2, reps: '12-15' },
+    { name: 'Face Pull / Reverse Fly (Light)', sets: 2, reps: '15-20' },
+    { name: 'Tricep Pushdown (Light)', sets: 3, reps: '15-20' },
+    { name: 'Bicep Curl (Light)', sets: 2, reps: '15-20' }
   ],
   'Lower Body (Light)': [
-    { name: 'Bulgarian Split Squats (Bodyweight)', sets: 3, reps: '15' },
-    { name: 'Romanian Deadlifts (Light)', sets: 3, reps: '15-20' },
-    { name: 'Leg Extensions (Hard Squeeze)', sets: 3, reps: '15-20' },
-    { name: 'Seated or Lying Leg Curls', sets: 3, reps: '15-20' },
-    { name: 'Lateral Band Walks', sets: 2, reps: '15-20' },
-    { name: 'Leg Raises & Planks', sets: 3, reps: 'Failure' }
+    { name: 'Bulgarian Split Squat (Light)', sets: 4, reps: '15' },
+    { name: 'RDL (Light)', sets: 3, reps: '15-20' },
+    { name: 'Leg Extension (Light)', sets: 3, reps: '15-20' },
+    { name: 'Hamstring Curl (Light)', sets: 2, reps: '15-20' },
+    { name: 'Lateral Band Walk (Light)', sets: 2, reps: '20' },
+    { name: 'Calves (Light)', sets: 3, reps: '20' },
+    { name: 'Machine Abs (Light)', sets: 3, reps: '15-20' },
+    { name: 'Knee Raises (Light)', sets: 3, reps: '15-20' },
+    { name: 'Plank (Seconds) (Light)', sets: 3, reps: '60s' }
   ]
 };
 
@@ -388,7 +399,7 @@ export default function App() {
 
         {todayPlan.type === 'CARDIO' && (
           <div className="bg-gray-800/40 p-6 rounded-2xl border border-gray-700/50 shadow-xl space-y-6">
-            <h3 className="text-xl font-bold flex items-center gap-2"><Route className={todayPlan.color}/> C25K Protocol Active</h3>
+            <h3 className="text-xl font-bold flex items-center gap-2"><Map className={todayPlan.color}/> C25K Protocol Active</h3>
             <div className="bg-gray-900 p-6 rounded-xl border border-emerald-500/20">
               <div className="text-xs font-bold text-emerald-500 mb-2 tracking-widest">CURRENT OBJECTIVE</div>
               <div className="text-2xl font-bold text-white mb-2">Follow C25K App Cues</div>
