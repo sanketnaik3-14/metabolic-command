@@ -32,8 +32,8 @@ const WORKOUT_CYCLE = {
   2: { type: 'LIFT', title: 'Lower Body (Heavy)', focus: 'Mechanical Load', rules: 'Strict 2-minute rests. 1-2 RIR.', color: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/30' },
   3: { type: 'CARDIO', title: 'C25K Run', focus: 'Aerobic Base, Fat Oxidation', rules: 'Treadmill C25K. Pre-workout Banana.', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', icon: Map },
   4: { type: 'REST', title: 'Active Recovery', focus: 'Tendon Repair', rules: '15-min walk max. Light stretching.', color: 'text-gray-400', bg: 'bg-gray-500/10', border: 'border-gray-500/30' },
-  5: { type: 'LIFT', title: 'Upper Body (Light)', focus: 'Hypertrophy & Pump', rules: '90s rests. Target ~60% of Heavy load.', color: 'text-cyan-400', bg: 'bg-cyan-500/10', border: 'border-cyan-500/30' },
-  6: { type: 'LIFT', title: 'Lower Body (Light)', focus: 'Capillary Angiogenesis', rules: '90s rests. Target ~60% of Heavy load.', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30' },
+  5: { type: 'LIFT', title: 'Upper Body (Light)', focus: 'Hypertrophy & Pump', rules: '90s rests. Smart DUP loads.', color: 'text-cyan-400', bg: 'bg-cyan-500/10', border: 'border-cyan-500/30' },
+  6: { type: 'LIFT', title: 'Lower Body (Light)', focus: 'Capillary Angiogenesis', rules: '90s rests. Smart DUP loads.', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30' },
   7: { type: 'CARDIO', title: 'C25K Run', focus: 'Aerobic Base, Fat Oxidation', rules: 'Treadmill C25K. Empty glycogen tank.', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', icon: Map },
   8: { type: 'REST', title: 'Complete Rest', focus: 'CNS & Systemic Recovery', rules: 'Zero impact. High Carb Refeed.', color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/30' },
 };
@@ -41,6 +41,7 @@ const WORKOUT_CYCLE = {
 const EXERCISES = {
   'Upper Body (Heavy)': [
     { name: 'Incline Chest Press', sets: 3, reps: '6-8' },
+    { name: 'Decline Machine / Cable Crossover', sets: 3, reps: '10-12' },
     { name: 'Lat Pulldown', sets: 3, reps: '6-8' },
     { name: 'Seated Cable Row', sets: 3, reps: '8-10' },
     { name: 'Shoulder Press', sets: 3, reps: '8-10' },
@@ -58,10 +59,11 @@ const EXERCISES = {
     { name: 'Calves', sets: 3, reps: '12-15' },
     { name: 'Machine Abs', sets: 3, reps: '12-15' },
     { name: 'Knee Raises', sets: 3, reps: '15' },
-    { name: 'Plank (Seconds)', sets: 3, reps: '45s' }
+    { name: 'Side Planks (Per Side)', sets: 3, reps: '30s' }
   ],
   'Upper Body (Light)': [
     { name: 'Incline Chest Press (Light)', sets: 3, reps: '12-15' },
+    { name: 'Decline Machine / Cable Crossover (Light)', sets: 3, reps: '12-15' },
     { name: 'Lat Pulldown (Light)', sets: 3, reps: '12-15' },
     { name: 'Seated Cable Row (Light)', sets: 3, reps: '15-20' },
     { name: 'Shoulder Press (Light)', sets: 3, reps: '12-15' },
@@ -79,7 +81,7 @@ const EXERCISES = {
     { name: 'Calves (Light)', sets: 3, reps: '20' },
     { name: 'Machine Abs (Light)', sets: 3, reps: '15-20' },
     { name: 'Knee Raises (Light)', sets: 3, reps: '15-20' },
-    { name: 'Plank (Seconds) (Light)', sets: 3, reps: '60s' }
+    { name: 'Side Planks (Per Side) (Light)', sets: 3, reps: '45s' }
   ]
 };
 
@@ -287,14 +289,11 @@ export default function App() {
     const today = new Date().toISOString().split('T')[0];
     const isLightDay = todayPlan.title.includes('Light');
     
-    // Auto-calculate 60% based on Heavy History
+    // Auto-calculate Max Weight from Heavy Logs
     const getMaxHeavyWeight = (exerciseName) => {
-      // Clean the name to find the base exercise (e.g., strips out "(Light)")
       const baseName = exerciseName.replace(/\s*\((Heavy|Light|.*)\)/ig, '').trim();
       let maxWt = 0;
-      
       Object.entries(workoutLogs).forEach(([logName, history]) => {
-        // Find logs that match the base name but are NOT the light variations
         if (logName.includes(baseName) && !logName.includes('Light')) {
           Object.values(history).forEach(daySets => {
             daySets.forEach(set => {
@@ -322,21 +321,30 @@ export default function App() {
             {EXERCISES[todayPlan.title]?.map((ex, idx) => {
               const exHistory = workoutLogs[ex.name] || {};
               const todaySets = exHistory[today] || [];
-              
               const pastDates = Object.keys(exHistory).filter(d => d !== today).sort((a,b) => new Date(b) - new Date(a));
-              let lastSessionSets = [];
-              if (pastDates.length > 0) {
-                lastSessionSets = exHistory[pastDates[0]] || [];
-              }
+              let lastSessionSets = pastDates.length > 0 ? exHistory[pastDates[0]] : [];
 
               let lightSuggestion = null;
               if (isLightDay) {
                 const maxWt = getMaxHeavyWeight(ex.name);
                 if (maxWt > 0) {
-                  const suggested = Math.round((maxWt * 0.6) * 2) / 2; // Rounds to nearest 0.5kg
-                  lightSuggestion = `💡 60% Target: ~${suggested} kg (Based on ${maxWt}kg)`;
+                  // Smart DUP Logic Implementation
+                  let multiplier = 0.6; 
+                  let stratText = "60% CNS Recovery";
+                  
+                  if (ex.name.includes('Lateral') || ex.name.includes('Bicep') || ex.name.includes('Tricep') || ex.name.includes('Face Pull') || ex.name.includes('Leg Extension') || ex.name.includes('Hamstring Curl')) {
+                    multiplier = 0.75;
+                    stratText = "75% Volume Target";
+                  }
+                  if (ex.name.includes('Abs') || ex.name.includes('Calves') || ex.name.includes('Plank') || ex.name.includes('Raises')) {
+                    multiplier = 1.0;
+                    stratText = "Max Weight / High Reps";
+                  }
+
+                  const suggested = Math.round((maxWt * multiplier) * 2) / 2;
+                  lightSuggestion = `💡 ${stratText}: ~${suggested} kg (Base: ${maxWt}kg)`;
                 } else {
-                  lightSuggestion = `💡 Target: ~60% of Heavy Weight`;
+                  lightSuggestion = `💡 Target: High Reps & Pump`;
                 }
               }
 
@@ -362,7 +370,7 @@ export default function App() {
                   {[...Array(ex.sets)].map((_, setIdx) => {
                     const savedSet = todaySets[setIdx];
                     const currentInput = exerciseInputs[`${ex.name}-${setIdx}`] || { weight: '', reps: '' };
-                    const prevSet = lastSessionSets[setIdx]; // Fetch the exact set from the last session
+                    const prevSet = lastSessionSets[setIdx]; 
                     
                     return (
                       <div key={setIdx} className={`flex gap-3 p-3 rounded-lg border ${savedSet ? 'bg-emerald-900/10 border-emerald-500/20 items-center' : 'bg-gray-900 border-gray-800 items-end'}`}>
@@ -371,7 +379,7 @@ export default function App() {
                         {savedSet ? (
                           <>
                             <div className="flex-1 flex gap-4 text-sm font-mono text-gray-200">
-                              <span className="bg-gray-800 px-3 py-1.5 rounded">{savedSet.weight} kg</span>
+                              <span className="bg-gray-800 px-3 py-1.5 rounded">{savedSet.weight} kg/s</span>
                               <span className="bg-gray-800 px-3 py-1.5 rounded">{savedSet.reps} reps</span>
                             </div>
                             <CheckCircle2 className="text-emerald-500 mr-2" size={20} />
@@ -382,13 +390,13 @@ export default function App() {
                                <span className="text-[10px] font-bold text-cyan-500/80 text-center tracking-wider h-3">
                                  {prevSet ? `PREV: ${prevSet.weight}` : ''}
                                </span>
-                               <input type="number" placeholder="Kg" value={currentInput.weight} onChange={e=>handleExerciseInput(ex.name, setIdx, 'weight', e.target.value)} className="w-full bg-gray-800 text-sm px-2 py-1.5 rounded border border-gray-700 text-white outline-none focus:border-cyan-500 text-center" />
+                               <input type="number" placeholder="Kg/s" value={currentInput.weight} onChange={e=>handleExerciseInput(ex.name, setIdx, 'weight', e.target.value)} className="w-full bg-gray-800 text-sm px-2 py-1.5 rounded border border-gray-700 text-white outline-none focus:border-cyan-500 text-center" />
                             </div>
                             <div className="flex-1 flex flex-col gap-1">
                                <span className="text-[10px] font-bold text-cyan-500/80 text-center tracking-wider h-3">
                                  {prevSet ? `PREV: ${prevSet.reps}` : ''}
                                </span>
-                               <input type="number" placeholder="Reps" value={currentInput.reps} onChange={e=>handleExerciseInput(ex.name, setIdx, 'reps', e.target.value)} className="w-full bg-gray-800 text-sm px-2 py-1.5 rounded border border-gray-700 text-white outline-none focus:border-cyan-500 text-center" />
+                               <input type="text" placeholder="Reps" value={currentInput.reps} onChange={e=>handleExerciseInput(ex.name, setIdx, 'reps', e.target.value)} className="w-full bg-gray-800 text-sm px-2 py-1.5 rounded border border-gray-700 text-white outline-none focus:border-cyan-500 text-center" />
                             </div>
                             <button onClick={() => logSetToDb(ex.name, setIdx, currentInput.weight, currentInput.reps)} className="ml-auto bg-cyan-600/20 text-cyan-400 px-3 py-1.5 rounded hover:bg-cyan-600/40 border border-cyan-500/30 font-bold text-xs sm:text-sm transition-colors mb-0.5">SAVE</button>
                           </>
@@ -433,7 +441,7 @@ export default function App() {
         {cycleDay === 8 ? (
           <span className="bg-purple-900/40 px-4 py-1.5 text-xs font-bold text-purple-300 border border-purple-500/50 rounded-full tracking-wider animate-pulse">DAY 8: HIGH CARB REFEED ACTIVE</span>
         ) : (
-          <span className="bg-gray-900 px-4 py-1.5 text-xs font-bold text-gray-300 border border-gray-700 rounded-full tracking-wider">DEFICIT TARGET: 1,750 KCAL | 143g PRO | 186g CARB</span>
+          <span className="bg-gray-900 px-4 py-1.5 text-xs font-bold text-gray-300 border border-gray-700 rounded-full tracking-wider">DEFICIT TARGET: 2,300 KCAL | 163g PRO | 200g+ CARB</span>
         )}
       </div>
 
@@ -474,18 +482,18 @@ export default function App() {
           <h4 className="font-bold text-white mb-2 pb-2 border-b border-gray-800">Meal 1: Breakfast</h4>
           <div className="text-sm text-gray-300 space-y-2 mt-3">
             <div className="flex justify-between"><span>Whole Eggs</span><span className="font-mono text-cyan-400 font-bold">4</span></div>
-            <div className="flex justify-between"><span>Dry Oats</span><span className="font-mono text-cyan-400 font-bold">40g</span></div>
+            <div className="flex justify-between"><span>Dry Oats</span><span className="font-mono text-cyan-400 font-bold">60g</span></div>
             <div className="flex justify-between"><span>Milk</span><span className="font-mono text-cyan-400 font-bold">100ml</span></div>
-            <div className="flex justify-between"><span>French Beans</span><span className="font-mono text-cyan-400 font-bold">1 Cup</span></div>
+            <div className="flex justify-between"><span>Whey</span><span className="font-mono text-cyan-400 font-bold">1/2 Scoop</span></div>
           </div>
         </div>
 
         <div className="bg-gray-900 p-5 rounded-xl border border-gray-800">
           <h4 className="font-bold text-white mb-2 pb-2 border-b border-gray-800">Meal 2: Lunch</h4>
           <div className="text-sm text-gray-300 space-y-2 mt-3">
-            <div className="flex justify-between"><span>Chicken Breast</span><span className="font-mono text-emerald-400 font-bold">160g</span></div>
+            <div className="flex justify-between"><span>Chicken Breast</span><span className="font-mono text-emerald-400 font-bold">150g</span></div>
             <div className="flex justify-between"><span>Brown Rice (Dry)</span><span className="font-mono text-emerald-400 font-bold">70g</span></div>
-            <div className="text-xs text-gray-500 mt-2 italic">Paired with trace amounts of home Dal/Sabji.</div>
+            <div className="text-xs text-gray-500 mt-2 italic">Substitute allowed: 70g raw Jowar/Atta (2 Bhakris/Chapatis).</div>
           </div>
         </div>
 
@@ -494,61 +502,16 @@ export default function App() {
           <div className="text-sm text-gray-300 space-y-2 mt-3">
             <div className="flex justify-between"><span>Whey Protein</span><span className="font-mono text-blue-400 font-bold">1 Scoop</span></div>
             <div className="flex justify-between"><span>Brown Rice (Dry)</span><span className="font-mono text-blue-400 font-bold">70g</span></div>
-            <div className="text-xs text-gray-500 mt-2 italic">Alternatively, swap the 70g rice for 2 Jowar Bhakris.</div>
+            <div className="text-xs text-gray-500 mt-2 italic">Plus home-cooked Dal/Sabji buffer (~300 cal limit/day).</div>
           </div>
         </div>
         
         <div className="bg-gray-900 p-5 rounded-xl border border-gray-800">
           <h4 className="font-bold text-white mb-2 pb-2 border-b border-gray-800">Meal 4: Dinner</h4>
           <div className="text-sm text-gray-300 space-y-2 mt-3">
-            <div className="flex justify-between"><span>Chicken Meatballs</span><span className="font-mono text-amber-400 font-bold">1/5 Batch</span></div>
-            <div className="text-xs text-gray-500 mt-2 italic">180g Chicken, 60g Oats, 50g Bottle Gourd, 60g Frozen Veg per serving.</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Recipe Book */}
-      <div className="bg-gray-800/40 rounded-2xl p-6 border border-gray-700/50 shadow-xl mt-8">
-        <h3 className="text-xl font-bold flex items-center gap-2 mb-6"><BookOpen className="text-blue-400"/> The Recipe Book</h3>
-        
-        <div className="space-y-6">
-          <div className="bg-gray-900 p-5 rounded-xl border border-gray-800">
-            <h4 className="font-bold text-lg text-gray-200 mb-3 text-amber-400">High-Protein Oat Meatballs (5-Day Batch)</h4>
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="md:col-span-1">
-                <div className="text-xs text-gray-500 font-bold mb-2 uppercase tracking-wider">Ingredients</div>
-                <ul className="text-sm text-gray-300 space-y-1 font-mono">
-                  <li>• 900g Minced Chicken</li>
-                  <li>• 300g Powdered Oats</li>
-                  <li>• 2 Whole Eggs (Binder)</li>
-                  <li>• 250g Bottle Gourd</li>
-                  <li>• 300g Frozen Veggies</li>
-                  <li>• 15ml Cooking Oil</li>
-                </ul>
-              </div>
-              <div className="md:col-span-2">
-                <div className="text-xs text-gray-500 font-bold mb-2 uppercase tracking-wider">Instructions & Macros</div>
-                <p className="text-sm text-gray-300 leading-relaxed mb-3">
-                  Mix all ingredients thoroughly. Form into equal portions. Bake at 200°C for 18-22 minutes total, flipping halfway. Keep the tray on the wire stand for airflow.
-                </p>
-                <div className="bg-gray-800/50 p-3 rounded-lg border border-gray-700/50">
-                  <span className="text-xs text-gray-400 uppercase tracking-widest font-bold block mb-1">Your Daily Portion (1/5th Batch)</span>
-                  <span className="text-sm text-white font-mono">~50.7g Protein | ~47.5g Carbs | 15.3g Fat</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-gray-900 p-5 rounded-xl border border-gray-800">
-            <h4 className="font-bold text-lg text-gray-200 mb-3 text-emerald-400">Brown Rice Daily Prep</h4>
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700/50">
-                <div className="text-sm font-bold text-white mb-2">Standard Days (Days 1-7)</div>
-                <p className="text-sm text-gray-300 leading-relaxed">
-                  Measure exactly <strong className="text-emerald-400">140 grams</strong> of dry brown rice daily. Cook and split into two equal 70g dry-equivalent portions (Meal 2 and Meal 3). This delivers exactly 100g of necessary carbohydrates.
-                </p>
-              </div>
-            </div>
+            <div className="flex justify-between"><span>Chicken Breast</span><span className="font-mono text-amber-400 font-bold">150g</span></div>
+            <div className="flex justify-between"><span>Dry Oats / Rice</span><span className="font-mono text-amber-400 font-bold">60g / 70g</span></div>
+            <div className="text-xs text-gray-500 mt-2 italic">Oats at night heavily promote deep, restorative sleep.</div>
           </div>
         </div>
       </div>
@@ -604,7 +567,7 @@ export default function App() {
             </div>
             <div>
               <h1 className="font-bold text-lg tracking-tight leading-none text-white">Metabolic Command</h1>
-              <span className="text-[10px] font-bold text-cyan-400 tracking-widest uppercase">DUP + C25K Protocol V3.0.0</span>
+              <span className="text-[10px] font-bold text-cyan-400 tracking-widest uppercase">DUP + C25K Protocol V3.1.0</span>
             </div>
           </div>
           {user ? (
