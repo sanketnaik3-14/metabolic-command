@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
+import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, doc, setDoc, onSnapshot } from 'firebase/firestore';
 import { 
   Activity, Flame, Clock, Dumbbell, Utensils, 
@@ -22,26 +22,26 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const appId = "metabolic-command-v2";
+const appId = "metabolic-command-v3";
 
 // ==========================================
-// 2. ENDOCRINE PROTOCOL DATA (V3: DUP + C25K)
+// 2. ENDOCRINE PROTOCOL DATA (V3.2: DUP + C25K)
 // ==========================================
 const WORKOUT_CYCLE = {
   1: { type: 'LIFT', title: 'Upper Body (Heavy)', focus: 'Strength & CNS Tension', rules: 'Strict 2-minute rests. 1-2 RIR.', color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/30' },
-  2: { type: 'LIFT', title: 'Lower Body (Heavy)', focus: 'Mechanical Load', rules: 'Strict 2-minute rests. 1-2 RIR.', color: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/30' },
-  3: { type: 'CARDIO', title: 'C25K Run', focus: 'Aerobic Base, Fat Oxidation', rules: 'Treadmill C25K. Pre-workout Banana.', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', icon: Map },
-  4: { type: 'REST', title: 'Active Recovery', focus: 'Tendon Repair', rules: '15-min walk max. Light stretching.', color: 'text-gray-400', bg: 'bg-gray-500/10', border: 'border-gray-500/30' },
+  2: { type: 'LIFT', title: 'Lower Body (Light)', focus: 'Capillary Angiogenesis', rules: '90s rests. Smart DUP loads.', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30' },
+  3: { type: 'CARDIO', title: 'C25K Run', focus: 'Aerobic Base, Fat Oxidation', rules: 'Treadmill C25K. Optional 15-30m walk based on energy.', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', icon: Map },
+  4: { type: 'REST', title: 'Active Recovery', focus: 'Tendon Repair', rules: 'Strictly 35-min treadmill walk. No running.', color: 'text-gray-400', bg: 'bg-gray-500/10', border: 'border-gray-500/30' },
   5: { type: 'LIFT', title: 'Upper Body (Light)', focus: 'Hypertrophy & Pump', rules: '90s rests. Smart DUP loads.', color: 'text-cyan-400', bg: 'bg-cyan-500/10', border: 'border-cyan-500/30' },
-  6: { type: 'LIFT', title: 'Lower Body (Light)', focus: 'Capillary Angiogenesis', rules: '90s rests. Smart DUP loads.', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30' },
-  7: { type: 'CARDIO', title: 'C25K Run', focus: 'Aerobic Base, Fat Oxidation', rules: 'Treadmill C25K. Empty glycogen tank.', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', icon: Map },
-  8: { type: 'REST', title: 'Complete Rest', focus: 'CNS & Systemic Recovery', rules: 'Zero impact. High Carb Refeed.', color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/30' },
+  6: { type: 'LIFT', title: 'Lower Body (Heavy)', focus: 'Mechanical Load', rules: 'Strict 2-minute rests. 1-2 RIR.', color: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/30' },
+  7: { type: 'CARDIO', title: 'C25K Run', focus: 'Aerobic Base, Fat Oxidation', rules: 'Treadmill C25K. Optional 15-30m walk based on energy.', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', icon: Map },
+  8: { type: 'REST', title: 'Complete Rest', focus: 'CNS & Systemic Recovery', rules: '35-min walk max. High Carb Refeed.', color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/30' },
 };
 
 const EXERCISES = {
   'Upper Body (Heavy)': [
     { name: 'Incline Chest Press', sets: 3, reps: '6-8' },
-    { name: 'Decline Machine / Cable Crossover', sets: 3, reps: '10-12' },
+    { name: 'Decline Press', sets: 3, reps: '10-12' },
     { name: 'Lat Pulldown', sets: 3, reps: '6-8' },
     { name: 'Seated Cable Row', sets: 3, reps: '8-10' },
     { name: 'Shoulder Press', sets: 3, reps: '8-10' },
@@ -63,7 +63,7 @@ const EXERCISES = {
   ],
   'Upper Body (Light)': [
     { name: 'Incline Chest Press (Light)', sets: 3, reps: '12-15' },
-    { name: 'Decline Machine / Cable Crossover (Light)', sets: 3, reps: '12-15' },
+    { name: 'Decline Press (Light)', sets: 3, reps: '12-15' },
     { name: 'Lat Pulldown (Light)', sets: 3, reps: '12-15' },
     { name: 'Seated Cable Row (Light)', sets: 3, reps: '15-20' },
     { name: 'Shoulder Press (Light)', sets: 3, reps: '12-15' },
@@ -135,6 +135,7 @@ const RestTimer = ({ duration = 120 }) => {
 // ==========================================
 export default function App() {
   const [user, setUser] = useState(null);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [activeTab, setActiveTab] = useState(() => localStorage.getItem('mc_activeTab') || 'dashboard');
   
   const [cycleDay, setCycleDay] = useState(1);
@@ -153,22 +154,21 @@ export default function App() {
   useEffect(() => { localStorage.setItem('mc_exerciseInputs', JSON.stringify(exerciseInputs)); }, [exerciseInputs]);
 
   useEffect(() => {
-    const initAuth = async () => {
-      try {
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-          await signInWithCustomToken(auth, __initial_auth_token);
-        } else {
-          await signInAnonymously(auth);
-        }
-      } catch (e) {
-        console.error("Auth Error:", e);
-      }
-    };
-    initAuth();
-
-    const unsubscribeAuth = onAuthStateChanged(auth, setUser);
+    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setIsCheckingAuth(false);
+    });
     return () => unsubscribeAuth();
   }, []);
+
+  const loginWithGoogle = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      console.error("Login failed:", error);
+    }
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -234,6 +234,26 @@ export default function App() {
     return { color: 'text-red-400', border: 'border-red-500/50', bg: 'bg-red-500/10', text: 'RED: System Overload. ABORT WORKOUT. Do Zone 2 only.' };
   };
 
+  if (isCheckingAuth) return <div className="min-h-screen bg-[#0a0a0a]"></div>;
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-4">
+        <div className="bg-gray-900 border border-gray-800 p-8 rounded-2xl max-w-md w-full text-center shadow-2xl">
+          <Activity size={48} className="text-cyan-500 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-white mb-2">Metabolic Command</h1>
+          <p className="text-gray-400 text-sm mb-8">Access restricted. Please authenticate.</p>
+          <button 
+            onClick={loginWithGoogle}
+            className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-4 rounded-xl transition-colors shadow-[0_0_15px_rgba(6,182,212,0.4)]"
+          >
+            SECURE LOGIN (GOOGLE)
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const renderDashboard = () => (
     <div className="space-y-6 animate-fadeIn">
       <div className="bg-gray-800/40 rounded-2xl p-6 border border-gray-700/50 shadow-xl">
@@ -258,7 +278,7 @@ export default function App() {
       </div>
 
       <div className="bg-gray-800/40 rounded-2xl p-6 border border-gray-700/50 shadow-xl">
-        <h3 className="text-xl font-bold mb-4">The 8-Day Engine Cycle</h3>
+        <h3 className="text-xl font-bold mb-4">The Staggered 8-Day Cycle</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {Object.entries(WORKOUT_CYCLE).map(([day, data]) => {
             const isActive = parseInt(day) === cycleDay;
@@ -289,7 +309,6 @@ export default function App() {
     const today = new Date().toISOString().split('T')[0];
     const isLightDay = todayPlan.title.includes('Light');
     
-    // Auto-calculate Max Weight from Heavy Logs
     const getMaxHeavyWeight = (exerciseName) => {
       const baseName = exerciseName.replace(/\s*\((Heavy|Light|.*)\)/ig, '').trim();
       let maxWt = 0;
@@ -328,7 +347,6 @@ export default function App() {
               if (isLightDay) {
                 const maxWt = getMaxHeavyWeight(ex.name);
                 if (maxWt > 0) {
-                  // Smart DUP Logic Implementation
                   let multiplier = 0.6; 
                   let stratText = "60% CNS Recovery";
                   
@@ -412,11 +430,15 @@ export default function App() {
 
         {todayPlan.type === 'CARDIO' && (
           <div className="bg-gray-800/40 p-6 rounded-2xl border border-gray-700/50 shadow-xl space-y-6">
-            <h3 className="text-xl font-bold flex items-center gap-2"><Map className={todayPlan.color}/> C25K Protocol Active</h3>
+            <h3 className="text-xl font-bold flex items-center gap-2"><Map className={todayPlan.color}/> C25K Engine Active</h3>
             <div className="bg-gray-900 p-6 rounded-xl border border-emerald-500/20">
-              <div className="text-xs font-bold text-emerald-500 mb-2 tracking-widest">CURRENT OBJECTIVE</div>
-              <div className="text-2xl font-bold text-white mb-2">Follow C25K App Cues</div>
-              <p className="text-gray-400 text-sm leading-relaxed">Boot up the C25K application. Keep the treadmill at a comfortable incline (1-2%). Focus on breathing and form during the running intervals. Enjoy the active fat oxidation.</p>
+              <div className="text-xs font-bold text-emerald-500 mb-2 tracking-widest">PHASE 1: THE RUN</div>
+              <div className="text-2xl font-bold text-white mb-2">Execute C25K Protocol</div>
+              <p className="text-gray-400 text-sm leading-relaxed mb-6">Keep the treadmill at 1-2% incline. Follow the app cues precisely.</p>
+              
+              <div className="text-xs font-bold text-cyan-500 mb-2 tracking-widest border-t border-gray-800 pt-4">PHASE 2: AUTOREGULATED FLUSH (OPTIONAL)</div>
+              <div className="text-lg font-bold text-white mb-2">15-30 Min Zone 2 Walk</div>
+              <p className="text-gray-400 text-sm leading-relaxed">Listen to your legs. If CNS allows, dial speed to 4.5km/h and walk to clear lactic acid.</p>
             </div>
           </div>
         )}
@@ -424,8 +446,13 @@ export default function App() {
         {todayPlan.type === 'REST' && (
           <div className="bg-gray-800/40 p-10 rounded-2xl border border-gray-700/50 shadow-xl text-center space-y-4">
             <Shield className={`mx-auto w-16 h-16 ${todayPlan.color} opacity-80`} />
-            <h3 className="text-2xl font-bold text-white">Recovery Mode Engaged</h3>
-            <p className="text-gray-400 max-w-md mx-auto">Zero mechanical impact today. Let your central nervous system, joints, and tendons fully recover. Eat your carbs.</p>
+            <h3 className="text-2xl font-bold text-white">Tendon Repair Mode</h3>
+            <p className="text-gray-400 max-w-md mx-auto mb-4">Zero mechanical impact today. Let your central nervous system recover.</p>
+            <div className="bg-gray-900 p-4 rounded-xl border border-gray-800 inline-block text-left">
+              <div className="text-xs font-bold text-amber-500 mb-1 tracking-widest">MANDATORY PROTOCOL</div>
+              <div className="text-white font-bold">35-Minute Continuous Walk</div>
+              <div className="text-sm text-gray-400">Target Zone 2. Flush the legs, burn the side fat.</div>
+            </div>
           </div>
         )}
       </div>
@@ -434,18 +461,15 @@ export default function App() {
 
   const renderFuel = () => (
     <div className="space-y-6 animate-fadeIn">
-      
-      {/* Dynamic Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <h3 className="text-2xl font-bold flex items-center gap-2"><Utensils className="text-amber-400"/> Diet & Supplement Vault</h3>
         {cycleDay === 8 ? (
           <span className="bg-purple-900/40 px-4 py-1.5 text-xs font-bold text-purple-300 border border-purple-500/50 rounded-full tracking-wider animate-pulse">DAY 8: HIGH CARB REFEED ACTIVE</span>
         ) : (
-          <span className="bg-gray-900 px-4 py-1.5 text-xs font-bold text-gray-300 border border-gray-700 rounded-full tracking-wider">DEFICIT TARGET: 2,300 KCAL | 163g PRO | 200g+ CARB</span>
+          <span className="bg-gray-900 px-4 py-1.5 text-xs font-bold text-gray-300 border border-gray-700 rounded-full tracking-wider">TARGET: ~2,300 KCAL | 163g+ PRO | ~200g CARB</span>
         )}
       </div>
 
-      {/* Medication Dashboard */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="bg-gradient-to-br from-gray-900 to-gray-800 p-5 rounded-2xl border border-gray-700/50 shadow-md">
           <h4 className="font-bold text-cyan-400 mb-4 flex items-center gap-2"><Coffee size={18}/> Morning Meds & Prep</h4>
@@ -470,13 +494,12 @@ export default function App() {
             </li>
             <li className="flex items-start gap-3 text-sm text-gray-200 bg-gray-900/50 p-2 rounded-lg border border-gray-800">
               <Pill className="text-indigo-500 shrink-0 mt-0.5" size={16}/> 
-              <div><strong className="text-white block">Supplements:</strong> Magnesium, Probiotics</div>
+              <div><strong className="text-white block">Skin Protocol:</strong> Vitamin C, Retinol, Heavy Moisturizer</div>
             </li>
           </ul>
         </div>
       </div>
 
-      {/* Meals */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-gray-900 p-5 rounded-xl border border-gray-800">
           <h4 className="font-bold text-white mb-2 pb-2 border-b border-gray-800">Meal 1: Breakfast</h4>
@@ -484,7 +507,7 @@ export default function App() {
             <div className="flex justify-between"><span>Whole Eggs</span><span className="font-mono text-cyan-400 font-bold">4</span></div>
             <div className="flex justify-between"><span>Dry Oats</span><span className="font-mono text-cyan-400 font-bold">60g</span></div>
             <div className="flex justify-between"><span>Milk</span><span className="font-mono text-cyan-400 font-bold">100ml</span></div>
-            <div className="flex justify-between"><span>Whey</span><span className="font-mono text-cyan-400 font-bold">1/2 Scoop</span></div>
+            <div className="text-xs text-gray-500 mt-2 italic">Substitute allowed: 3 Extra Eggs + 1-1.5 Bhakri.</div>
           </div>
         </div>
 
@@ -498,11 +521,11 @@ export default function App() {
         </div>
 
         <div className="bg-gray-900 p-5 rounded-xl border border-gray-800">
-          <h4 className="font-bold text-white mb-2 pb-2 border-b border-gray-800">Meal 3: The Shake</h4>
+          <h4 className="font-bold text-white mb-2 pb-2 border-b border-gray-800">Meal 3: The Fix</h4>
           <div className="text-sm text-gray-300 space-y-2 mt-3">
-            <div className="flex justify-between"><span>Whey Protein</span><span className="font-mono text-blue-400 font-bold">1 Scoop</span></div>
-            <div className="flex justify-between"><span>Brown Rice (Dry)</span><span className="font-mono text-blue-400 font-bold">70g</span></div>
-            <div className="text-xs text-gray-500 mt-2 italic">Plus home-cooked Dal/Sabji buffer (~300 cal limit/day).</div>
+            <div className="flex justify-between"><span>Whey Protein</span><span className="font-mono text-blue-400 font-bold">2 Scoops</span></div>
+            <div className="flex justify-between"><span>Brown Rice / Bhakri</span><span className="font-mono text-blue-400 font-bold">70g</span></div>
+            <div className="text-xs text-gray-500 mt-2 italic">Plus dynamic home-cooked Dal/Sabji buffer.</div>
           </div>
         </div>
         
@@ -567,13 +590,13 @@ export default function App() {
             </div>
             <div>
               <h1 className="font-bold text-lg tracking-tight leading-none text-white">Metabolic Command</h1>
-              <span className="text-[10px] font-bold text-cyan-400 tracking-widest uppercase">DUP + C25K Protocol V3.1.0</span>
+              <span className="text-[10px] font-bold text-cyan-400 tracking-widest uppercase">DUP + C25K Protocol V3.2.0</span>
             </div>
           </div>
           {user ? (
             <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full">
               <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
-              <span className="text-[10px] font-bold text-emerald-400 tracking-wider">DB LIVE</span>
+              <span className="text-[10px] font-bold text-emerald-400 tracking-wider">DB LIVE ({user.email?.split('@')[0]})</span>
             </div>
           ) : (
             <div className="flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-full">
