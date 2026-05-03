@@ -28,60 +28,53 @@ const appId = "metabolic-command-v3";
 // 2. ENDOCRINE PROTOCOL DATA (V3.2: DUP + C25K)
 // ==========================================
 const WORKOUT_CYCLE = {
-  1: { type: 'LIFT', title: 'Upper Body (Heavy)', focus: 'Strength & CNS Tension', rules: 'Strict 2-minute rests. 1-2 RIR.', color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/30' },
-  2: { type: 'LIFT', title: 'Lower Body (Light)', focus: 'Capillary Angiogenesis', rules: '90s rests. Smart DUP loads.', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30' },
-  3: { type: 'CARDIO', title: 'C25K Run', focus: 'Aerobic Base, Fat Oxidation', rules: 'Treadmill C25K. Optional 15-30m walk based on energy.', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', icon: Map },
-  4: { type: 'REST', title: 'Active Recovery', focus: 'Tendon Repair', rules: 'Strictly 35-min treadmill walk. No running.', color: 'text-gray-400', bg: 'bg-gray-500/10', border: 'border-gray-500/30' },
-  5: { type: 'LIFT', title: 'Upper Body (Light)', focus: 'Hypertrophy & Pump', rules: '90s rests. Smart DUP loads.', color: 'text-cyan-400', bg: 'bg-cyan-500/10', border: 'border-cyan-500/30' },
-  6: { type: 'LIFT', title: 'Lower Body (Heavy)', focus: 'Mechanical Load', rules: 'Strict 2-minute rests. 1-2 RIR.', color: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/30' },
-  7: { type: 'CARDIO', title: 'C25K Run', focus: 'Aerobic Base, Fat Oxidation', rules: 'Treadmill C25K. Optional 15-30m walk based on energy.', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', icon: Map },
-  8: { type: 'REST', title: 'Complete Rest', focus: 'CNS & Systemic Recovery', rules: '35-min walk max. High Carb Refeed.', color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/30' },
+  1: { type: 'LIFT', title: 'Upper Body (Heavy)', focus: 'Strength Maintenance', rules: 'Strict 2-minute rests. 1-2 RIR.', color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/30' },
+  2: { type: 'LIFT', title: 'Lower Body (Light)', focus: 'Blood Flow & Angiogenesis', rules: '90s rests. Target ~60% of Heavy load.', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30' },
+  3: { type: 'CARDIO', title: 'C25K Run', focus: 'Aerobic Base, Fat Oxidation', rules: 'Treadmill C25K. NO MORNING WALK TODAY.', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', icon: Map },
+  4: { type: 'REST', title: 'Active Recovery', focus: 'Tendon Repair', rules: 'Optional 4k walk based on feel.', color: 'text-gray-400', bg: 'bg-gray-500/10', border: 'border-gray-500/30' },
+  5: { type: 'LIFT', title: 'Upper Body (Light)', focus: 'Muscle Fullness', rules: '90s rests. Target ~60% of Heavy load.', color: 'text-cyan-400', bg: 'bg-cyan-500/10', border: 'border-cyan-500/30' },
+  6: { type: 'LIFT', title: 'Lower Body (Heavy)', focus: 'Mechanical Tension', rules: 'Strict 2-minute rests. 1-2 RIR.', color: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/30' },
+  7: { type: 'CARDIO', title: 'C25K Run', focus: 'Aerobic Base, Fat Oxidation', rules: 'Treadmill C25K. NO MORNING WALK TODAY.', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', icon: Map },
+  8: { type: 'REST', title: 'Complete Rest', focus: 'System Recovery', rules: 'Optional 4k walk. Eat your carbs.', color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/30' },
 };
 
 const EXERCISES = {
   'Upper Body (Heavy)': [
     { name: 'Incline Chest Press', sets: 3, reps: '6-8' },
-    { name: 'Decline Press', sets: 3, reps: '10-12' },
+    { name: 'Decline Machine Press', sets: 3, reps: '8-10' },
     { name: 'Lat Pulldown', sets: 3, reps: '6-8' },
     { name: 'Seated Cable Row', sets: 3, reps: '8-10' },
-    { name: 'Shoulder Press', sets: 3, reps: '8-10' },
-    { name: 'Lateral Raise', sets: 3, reps: '10-12' },
-    { name: 'Face Pull / Reverse Fly', sets: 2, reps: '10-12' },
-    { name: 'Tricep Pushdown', sets: 3, reps: '10-12' },
+    { name: 'Shoulder Press', sets: 2, reps: '8-10' },
+    { name: 'Tricep Pushdown', sets: 2, reps: '10-12' },
     { name: 'Bicep Curl', sets: 2, reps: '10-12' }
   ],
   'Lower Body (Heavy)': [
-    { name: 'Bulgarian Split Squat', sets: 4, reps: '8-10' },
-    { name: 'RDL', sets: 3, reps: '8-10' },
-    { name: 'Leg Extension', sets: 3, reps: '10-12' },
+    { name: 'Bulgarian Split Squat', sets: 3, reps: '8-10' },
+    { name: 'RDL', sets: 2, reps: '8-10' },
     { name: 'Hamstring Curl', sets: 2, reps: '10-12' },
-    { name: 'Lateral Band Walk', sets: 2, reps: '15' },
     { name: 'Calves', sets: 3, reps: '12-15' },
     { name: 'Machine Abs', sets: 3, reps: '12-15' },
-    { name: 'Knee Raises', sets: 3, reps: '15' },
-    { name: 'Side Planks (Per Side)', sets: 3, reps: '30s' }
+    { name: 'Heavy Suitcase Carry (Per Side)', sets: 3, reps: '45s walk' },
+    { name: 'Stomach Vacuums', sets: 5, reps: '15s hold' }
   ],
   'Upper Body (Light)': [
-    { name: 'Incline Chest Press (Light)', sets: 3, reps: '12-15' },
-    { name: 'Decline Press (Light)', sets: 3, reps: '12-15' },
+    { name: 'Incline Chest Press (Light)', sets: 2, reps: '12-15' },
+    { name: 'Decline Machine Press (Light)', sets: 2, reps: '12-15' },
     { name: 'Lat Pulldown (Light)', sets: 3, reps: '12-15' },
-    { name: 'Seated Cable Row (Light)', sets: 3, reps: '15-20' },
-    { name: 'Shoulder Press (Light)', sets: 3, reps: '12-15' },
+    { name: 'Seated Cable Row (Light)', sets: 2, reps: '15-20' },
     { name: 'Lateral Raise (Light)', sets: 3, reps: '15-20' },
     { name: 'Face Pull / Reverse Fly (Light)', sets: 2, reps: '15-20' },
-    { name: 'Tricep Pushdown (Light)', sets: 3, reps: '15-20' },
+    { name: 'Tricep Pushdown (Light)', sets: 2, reps: '15-20' },
     { name: 'Bicep Curl (Light)', sets: 2, reps: '15-20' }
   ],
   'Lower Body (Light)': [
-    { name: 'Bulgarian Split Squat (Light)', sets: 4, reps: '15' },
-    { name: 'RDL (Light)', sets: 3, reps: '15-20' },
-    { name: 'Leg Extension (Light)', sets: 3, reps: '15-20' },
+    { name: 'Bulgarian Split Squat (Light)', sets: 3, reps: '15' },
+    { name: 'RDL (Light)', sets: 2, reps: '15-20' },
     { name: 'Hamstring Curl (Light)', sets: 2, reps: '15-20' },
-    { name: 'Lateral Band Walk (Light)', sets: 2, reps: '20' },
     { name: 'Calves (Light)', sets: 3, reps: '20' },
     { name: 'Machine Abs (Light)', sets: 3, reps: '15-20' },
-    { name: 'Knee Raises (Light)', sets: 3, reps: '15-20' },
-    { name: 'Side Planks (Per Side) (Light)', sets: 3, reps: '45s' }
+    { name: 'Suitcase Carry (Light)', sets: 2, reps: '45s walk' },
+    { name: 'Stomach Vacuums', sets: 5, reps: '15s hold' }
   ]
 };
 
@@ -466,7 +459,7 @@ export default function App() {
         {cycleDay === 8 ? (
           <span className="bg-purple-900/40 px-4 py-1.5 text-xs font-bold text-purple-300 border border-purple-500/50 rounded-full tracking-wider animate-pulse">DAY 8: HIGH CARB REFEED ACTIVE</span>
         ) : (
-          <span className="bg-gray-900 px-4 py-1.5 text-xs font-bold text-gray-300 border border-gray-700 rounded-full tracking-wider">TARGET: ~2,300 KCAL | 163g+ PRO | ~200g CARB</span>
+          <span className="bg-gray-900 px-4 py-1.5 text-xs font-bold text-gray-300 border border-gray-700 rounded-full tracking-wider">TARGET: ~1,750 KCAL | 131g+ PRO | ~156g CARB | 58g FAT</span>
         )}
       </div>
 
